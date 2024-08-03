@@ -1,0 +1,6 @@
+[submodule "tests/googletest"]
+	path = tests/googletest
+	url = git@github.com:google/googletest.git
+[submodule "upstream/fmt"]
+	path = upstream/fmt
+	url = git@github.com:fmtlib/fmt.git
