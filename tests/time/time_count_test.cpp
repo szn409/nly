@@ -2,7 +2,7 @@
 #include "nly/time/time_count.hpp"
 #include <thread>
 
-TEST(Time, TimeTest)
+TEST(TimeCount, All)
 {
   auto time_start = nly::now();
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
