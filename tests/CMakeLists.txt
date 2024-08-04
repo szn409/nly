@@ -4,6 +4,7 @@ project(nly_unit_test VERSION 0.1.0)
 add_executable(nly_unit_test 
   ${CMAKE_CURRENT_SOURCE_DIR}/time/time_count_test.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/time/date_time_test.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/encoding_test.cpp
   )
 
 if(MSVC)
@@ -11,4 +12,4 @@ if(MSVC)
 endif()
 
 add_subdirectory(googletest)
-target_link_libraries(nly_unit_test gtest_main nly boost_date_time)
+target_link_libraries(nly_unit_test gtest_main nly boost_date_time boost_locale)

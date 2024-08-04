@@ -1,6 +1,5 @@
 #include "gtest/gtest.h"
 #include "nly/time/date_time.hpp"
-#include <thread>
 
 TEST(DateTime, Date)
 {
