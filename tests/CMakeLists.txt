@@ -5,6 +5,7 @@ add_executable(nly_unit_test
   ${CMAKE_CURRENT_SOURCE_DIR}/time/time_count_test.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/time/date_time_test.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/encoding_test.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/string_test.cpp
   )
 
 if(MSVC)
