@@ -51,6 +51,16 @@ $ git submodule update --init --recursive
 
 
 
-## test
+## open test
 
 * Set `ENABLE_NLY_UNIT_TEST` to `ON` to enable unit test.
+
+
+
+## testing environment
+
+| plantform  | compiler   | result |
+| ---------- | ---------- | ------ |
+| windows 10 | VS2019     | ✅      |
+| ubuntu     | GCC 11.4.0 | ✅      |
+
