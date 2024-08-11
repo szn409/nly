@@ -7,6 +7,7 @@ add_executable(nly_unit_test
   ${CMAKE_CURRENT_SOURCE_DIR}/encoding_test.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/string_test.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/memory_pool_test.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/random_test.cpp
   )
 
 if(MSVC)
