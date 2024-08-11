@@ -74,7 +74,7 @@ private:
 // for converting characters like "αβγδ" that are non-ASCII, use wstring instead of string.
 // this rule applies to all functions involving case conversion.
 template<typename T>
-void to_upper(T& input, const std::locale& loc = std::locale())
+void to_upper(T& input, const std::locale& loc = std::locale("zh_CN.utf8"))
 {
   boost::algorithm::to_upper(input, loc);
 }
@@ -82,7 +82,7 @@ void to_upper(T& input, const std::locale& loc = std::locale())
 // for converting characters like "αβγδ" that are non-ASCII, use wstring instead of string.
 // this rule applies to all functions involving case conversion.
 template<typename T>
-void to_lower(T& input, const std::locale& loc = std::locale())
+void to_lower(T& input, const std::locale& loc = std::locale("zh_CN.utf8"))
 {
   boost::algorithm::to_lower(input, loc);
 }
@@ -92,7 +92,7 @@ bool starts_with(
   const t_input&     input,
   const t_match&     match,
   bool               case_sensitive = true,
-  const std::locale& loc = std::locale())
+  const std::locale& loc = std::locale("zh_CN.utf8"))
 {
   if (case_sensitive)
   {
@@ -107,7 +107,7 @@ bool ends_with(
   const t_input&     input,
   const t_match&     match,
   bool               case_sensitive = true,
-  const std::locale& loc = std::locale())
+  const std::locale& loc = std::locale("zh_CN.utf8"))
 {
   if (case_sensitive)
   {
@@ -174,7 +174,7 @@ bool contains(
   const t_input&     input,
   const t_test&      test,
   bool               case_sensitive = true,
-  const std::locale& loc = std::locale())
+  const std::locale& loc = std::locale("zh_CN.utf8"))
 {
   if (case_sensitive)
   {
@@ -189,7 +189,7 @@ bool equals(
   const t_input_1&   input_1,
   const t_input_2&   input_2,
   bool               case_sensitive = true,
-  const std::locale& loc = std::locale())
+  const std::locale& loc = std::locale("zh_CN.utf8"))
 {
   if (case_sensitive)
   {
@@ -205,7 +205,7 @@ bool lexicographical_compare(
   const t_input_1&   input_1,
   const t_input_2&   input_2,
   bool               case_sensitive = true,
-  const std::locale& loc = std::locale())
+  const std::locale& loc = std::locale("zh_CN.utf8"))
 {
   if (case_sensitive)
   {
@@ -220,7 +220,7 @@ auto find_first(
   const t_input&     input,
   const t_match&     match,
   bool               case_sensitive = true,
-  const std::locale& loc = std::locale())
+  const std::locale& loc = std::locale("zh_CN.utf8"))
 {
   if (case_sensitive)
   {
@@ -235,7 +235,7 @@ auto find_last(
   const t_input&     input,
   const t_match&     match,
   bool               case_sensitive = true,
-  const std::locale& loc = std::locale())
+  const std::locale& loc = std::locale("zh_CN.utf8"))
 {
   if (case_sensitive)
   {
@@ -251,7 +251,7 @@ void replace_first(
   const t_match&     match,
   const t_replace&   replace,
   bool               case_sensitive = true,
-  const std::locale& loc = std::locale())
+  const std::locale& loc = std::locale("zh_CN.utf8"))
 {
   if (case_sensitive)
   {
@@ -267,7 +267,7 @@ void replace_last(
   const t_match&     match,
   const t_replace&   replace,
   bool               case_sensitive = true,
-  const std::locale& loc = std::locale())
+  const std::locale& loc = std::locale("zh_CN.utf8"))
 {
   if (case_sensitive)
   {
@@ -286,7 +286,7 @@ void replace_nth(
   int                nth,
   const t_replace&   replace,
   bool               case_sensitive = true,
-  const std::locale& loc = std::locale())
+  const std::locale& loc = std::locale("zh_CN.utf8"))
 {
   if (case_sensitive)
   {
@@ -302,7 +302,7 @@ void replace_all(
   const t_match&     match,
   const t_replace&   replace,
   bool               case_sensitive = true,
-  const std::locale& loc = std::locale())
+  const std::locale& loc = std::locale("zh_CN.utf8"))
 {
   if (case_sensitive)
   {
@@ -329,7 +329,7 @@ void erase_first(
   t_input&           input,
   const t_erase&     erase,
   bool               case_sensitive = true,
-  const std::locale& loc = std::locale())
+  const std::locale& loc = std::locale("zh_CN.utf8"))
 {
   if (case_sensitive)
   {
@@ -344,7 +344,7 @@ void erase_last(
   t_input&           input,
   const t_erase&     erase,
   bool               case_sensitive = true,
-  const std::locale& loc = std::locale())
+  const std::locale& loc = std::locale("zh_CN.utf8"))
 {
   if (case_sensitive)
   {
@@ -362,7 +362,7 @@ void erase_nth(
   const t_erase&     erase,
   int                nth,
   bool               case_sensitive = true,
-  const std::locale& loc = std::locale())
+  const std::locale& loc = std::locale("zh_CN.utf8"))
 {
   if (case_sensitive)
   {
@@ -377,7 +377,7 @@ void erase_all(
   t_input&           input,
   const t_erase&     erase,
   bool               case_sensitive = true,
-  const std::locale& loc = std::locale())
+  const std::locale& loc = std::locale("zh_CN.utf8"))
 {
   if (case_sensitive)
   {
