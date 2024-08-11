@@ -6,6 +6,7 @@ add_executable(nly_unit_test
   ${CMAKE_CURRENT_SOURCE_DIR}/time/date_time_test.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/encoding_test.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/string_test.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/memory_pool_test.cpp
   )
 
 if(MSVC)
@@ -13,4 +14,7 @@ if(MSVC)
 endif()
 
 add_subdirectory(googletest)
-target_link_libraries(nly_unit_test gtest_main nly boost_date_time boost_locale)
+target_link_libraries(nly_unit_test 
+  gtest_main 
+  nly 
+  boost_date_time boost_locale boost_signals2 boost_pool)
