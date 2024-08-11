@@ -5,6 +5,7 @@
 * header-only.
 * cross-platform.
 * simple to use.
+* high-coverage test cases.
 
 
 
