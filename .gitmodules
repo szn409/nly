@@ -1,9 +1,9 @@
 [submodule "tests/googletest"]
 	path = tests/googletest
-	url = git@github.com:google/googletest.git
+	url = https://github.com/google/googletest.git
 [submodule "upstream/fmt"]
 	path = upstream/fmt
-	url = git@github.com:fmtlib/fmt.git
+	url = https://github.com/fmtlib/fmt.git
 [submodule "upstream/boost"]
 	path = upstream/boost
-	url = git@github.com:boostorg/boost.git
+	url = https://github.com/boostorg/boost.git
