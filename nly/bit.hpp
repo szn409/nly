@@ -2,6 +2,9 @@
 #define NLY_BIT
 
 #include "boost/core/bit.hpp"
+#include "fmt/format.h"
+#include <optional>
+#include <algorithm>
 
 namespace nly
 {
@@ -63,6 +66,96 @@ inline unsigned long long get_bit_value(
   }
 
   return out;
+}
+
+std::string hex_to_str(
+  const void*                      input,
+  const size_t                     input_byte,
+  const std::optional<std::string> seg = " ",
+  const bool                       capital = true)
+{
+  std::string out;
+  out.reserve(input_byte * (seg ? (2 + seg->size()) : 2));
+
+  std::string tmp = "{:02X}";
+  if (!capital)
+  {
+    tmp = "{:02x}";
+  }
+  if (seg)
+  {
+    tmp += *seg;
+  }
+
+  fmt::format_string<char> format(tmp);
+
+  auto input_start = static_cast<const unsigned char*>(input);
+  auto input_end = input_start + input_byte;
+  while (input_start != input_end)
+  {
+    out += fmt::format(format, *input_start++);
+  }
+
+  if (!out.empty() && seg)
+  {
+    assert(out.size() > seg->size());
+    out.erase(out.end() - seg->size(), out.end());
+  }
+
+  return out;
+}
+
+/*
+Note:
+  1. All space will be ignore.
+  2. The input must be a hexadecimal string. If it does not meet this requirement, the output will
+     not be guaranteed to be correct.
+
+input            output
+""         ->    []
+"   "      ->    []
+"f"        ->    [0x0f]
+" f  "     ->    [0x0f]
+"fa"       ->    [0xfa]
+"  f a "   ->    [0xfa]
+"fab"      ->    [0x0f, 0xab]
+"fabc"     ->    [0xfa, 0xbc]
+*/
+void str_to_hex(const std::string& input, std::vector<unsigned char>& output)
+{
+  output.clear();
+  if (input.empty())
+  {
+    return;
+  }
+
+  std::string input_copy;
+  input_copy.reserve(input.size());
+
+  std::copy_if(
+    std::begin(input),
+    std::end(input),
+    std::back_inserter(input_copy),
+    [](char value) { return value != ' '; });
+  output.reserve(input_copy.size() / 2);
+
+  char buff[3] = {};
+  auto it = input_copy.begin();
+  auto it_end = input_copy.end();
+
+  if (input_copy.size() % 2)
+  {
+    buff[0] = *it++;
+    output.emplace_back(static_cast<unsigned char>(strtol(buff, nullptr, 16)));
+  }
+
+  while (it != it_end)
+  {
+    buff[0] = *it++;
+    buff[1] = *it++;
+    assert(it <= it_end);
+    output.emplace_back(static_cast<unsigned char>(strtol(buff, nullptr, 16)));
+  }
 }
 
 } // namespace nly

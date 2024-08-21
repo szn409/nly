@@ -45,3 +45,44 @@ TEST(Bit, GetBitValue)
   EXPECT_TRUE(nly::get_bit_value(buff, 1, 32) == 0xC5AF37FF << 1);
   EXPECT_TRUE(nly::get_bit_value(buff, 1, 64) == (0xC5AF37FF00F00F01 << 1) + 1);
 }
+
+TEST(Bit, HexToStr)
+{
+  unsigned char input[] = { 0x01, 0x12, 0xAB, 0xFF };
+  EXPECT_TRUE(nly::hex_to_str(input, 0) == "");
+  EXPECT_TRUE(nly::hex_to_str(input, 1) == "01");
+  EXPECT_TRUE(nly::hex_to_str(input, 4) == "01 12 AB FF");
+  EXPECT_TRUE(nly::hex_to_str(input, 2, "") == "0112");
+  EXPECT_TRUE(nly::hex_to_str(input, 2, "*") == "01*12");
+  EXPECT_TRUE(nly::hex_to_str(input, 2, "**") == "01**12");
+  EXPECT_TRUE(nly::hex_to_str(input, 3, " ", false) == "01 12 ab");
+  EXPECT_TRUE(nly::hex_to_str(input, 3, "----", false) == "01----12----ab");
+
+  std::string str;
+  str.push_back(0xEE);
+  str.push_back(0xFF);
+  unsigned char out[] = { '0', '1', 0xEE, 0xFF, '1', '2' };
+  EXPECT_TRUE(!memcmp(out, nly::hex_to_str(input, 2, str).c_str(), 6));
+}
+
+TEST(Bit, StrToHex)
+{
+  std::vector<unsigned char> out;
+
+  auto fun = [&out](const std::string& input, const std::vector<unsigned char>& output)
+  {
+    nly::str_to_hex(input, out);
+    EXPECT_EQ(out, output);
+  };
+
+  fun("", {});
+  fun("   ", {});
+  fun("f", { 0x0f });
+  fun(" f  ", { 0x0f });
+  fun("fa", { 0xfa });
+  fun("  f a ", { 0xfa });
+  fun("fab", { 0x0f, 0xab });
+  fun("fabc", { 0xfa, 0xbc });
+  fun(" f a b c   ", { 0xfa, 0xbc });
+  fun(" f a b c   d", { 0x0f, 0xab, 0xcd });
+}
