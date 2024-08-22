@@ -3,7 +3,10 @@
 
 #include "boost/core/bit.hpp"
 #include "fmt/format.h"
+#include <vector>
+#include <cassert>
 #include <optional>
+#include <iterator>
 #include <algorithm>
 
 namespace nly
@@ -68,7 +71,7 @@ inline unsigned long long get_bit_value(
   return out;
 }
 
-std::string hex_to_str(
+inline std::string hex_to_str(
   const void*                      input,
   const size_t                     input_byte,
   const std::optional<std::string> seg = " ",
@@ -121,41 +124,45 @@ input            output
 "fab"      ->    [0x0f, 0xab]
 "fabc"     ->    [0xfa, 0xbc]
 */
-void str_to_hex(const std::string& input, std::vector<unsigned char>& output)
+inline void str_to_hex(const std::string& input, std::vector<unsigned char>& output)
 {
   output.clear();
-  if (input.empty())
+  output.reserve(input.size() / 2);
+
+  auto it = input.rbegin();
+  auto it_end = input.rend();
+
+  auto next = [&it, &it_end]() -> bool
   {
-    return;
-  }
+    while (it != it_end && *it == ' ')
+    {
+      ++it;
+    }
 
-  std::string input_copy;
-  input_copy.reserve(input.size());
-
-  std::copy_if(
-    std::begin(input),
-    std::end(input),
-    std::back_inserter(input_copy),
-    [](char value) { return value != ' '; });
-  output.reserve(input_copy.size() / 2);
+    return it != it_end;
+  };
 
   char buff[3] = {};
-  auto it = input_copy.begin();
-  auto it_end = input_copy.end();
 
-  if (input_copy.size() % 2)
+  while (true)
   {
-    buff[0] = *it++;
-    output.emplace_back(static_cast<unsigned char>(strtol(buff, nullptr, 16)));
-  }
-
-  while (it != it_end)
-  {
-    buff[0] = *it++;
+    if (!next())
+    {
+      break;
+    }
     buff[1] = *it++;
-    assert(it <= it_end);
+
+    if (!next())
+    {
+      output.emplace_back(static_cast<unsigned char>(strtol(buff + 1, nullptr, 16)));
+      break;
+    }
+    buff[0] = *it++;
     output.emplace_back(static_cast<unsigned char>(strtol(buff, nullptr, 16)));
   }
+
+  std::reverse(output.begin(), output.end());
+  return;
 }
 
 } // namespace nly
