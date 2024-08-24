@@ -35,10 +35,11 @@
 
 * The third-party libraries that `nly` depends on are all disabled by default, and can be enabled according to the user's needs. The following is the list of third-party libraries and the variable names used to enable them.
 
-| name  | variable          |
-| ----- | ----------------- |
-| fmt   | ADD_FMT_VIA_NLY   |
-| boost | ADD_BOOST_VIA_NLY |
+| name                                                    | variable                   |
+| ------------------------------------------------------- | -------------------------- |
+| [fmt](https://github.com/fmtlib/fmt)                    | ADD_FMT_VIA_NLY            |
+| [boost](https://github.com/boostorg/boost)              | ADD_BOOST_VIA_NLY          |
+| [thread-pool](https://github.com/bshoshany/thread-pool) | ADD_BS_THREAD_POOL_VIA_NLY |
 
 
 

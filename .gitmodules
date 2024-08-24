@@ -7,3 +7,6 @@
 [submodule "upstream/boost"]
 	path = upstream/boost
 	url = https://github.com/boostorg/boost.git
+[submodule "upstream/thread_pool/thread-pool"]
+	path = upstream/thread_pool/thread-pool
+	url = https://github.com/bshoshany/thread-pool.git
