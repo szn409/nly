@@ -165,6 +165,85 @@ inline void str_to_hex(const std::string& input, std::vector<unsigned char>& out
   return;
 }
 
+// Each time, take 10 consecutive bits from the input, form a 16-bit value.
+// The number of input bytes must be a multiple of 5.
+// The number of valid data bytes in the output is input_byte / 5 * 4.
+inline void from_10bit_to_16bit(const void* input, const size_t input_byte, unsigned short* output)
+{
+  assert(!(input_byte % 5));
+
+  auto input_begin = static_cast<const unsigned char*>(input);
+  auto input_end = input_begin + input_byte;
+  int  index = 0;
+
+  unsigned char tem_0 = 0;
+  unsigned char tem_1 = 0;
+  unsigned char tem_2 = 0;
+  unsigned char tem_3 = 0;
+  unsigned char tem_4 = 0;
+
+  while (input_begin != input_end)
+  {
+    tem_0 = *input_begin++;
+    tem_1 = *input_begin++;
+    tem_2 = *input_begin++;
+    tem_3 = *input_begin++;
+    tem_4 = *input_begin++;
+
+    output[index++] = tem_0 << 2 | tem_1 >> 6;
+    output[index++] = (tem_1 & 0x3f) << 4 | tem_2 >> 4;
+    output[index++] = (tem_2 & 0xf) << 6 | tem_3 >> 2;
+    output[index++] = (tem_3 & 0x3) << 8 | tem_4;
+  }
+}
+
+// Each time, take 12 consecutive bits from the input, form a 16-bit value.
+// The number of input bytes must be a multiple of 3.
+// The number of valid data bytes in the output is input_byte / 3 * 2.
+inline void from_12bit_to_16bit(const void* input, const size_t input_byte, unsigned short* output)
+{
+  assert(!(input_byte % 3));
+
+  auto input_start = static_cast<const unsigned char*>(input);
+  auto input_end = input_start + input_byte;
+  int  index = 0;
+
+  unsigned char tem_0 = 0;
+  unsigned char tem_1 = 0;
+  unsigned char tem_2 = 0;
+
+  while (input_start != input_end)
+  {
+    tem_0 = *input_start++;
+    tem_1 = *input_start++;
+    tem_2 = *input_start++;
+
+    output[index++] = tem_0 << 4 | tem_1 >> 4;
+    output[index++] = (tem_1 & 0xF) << 8 | tem_2;
+  }
+}
+
+// For each element in the input, take 8 consecutive bits, store them in the output.
+// mode: 0 means to take the lowest 8 bits of each element, 1 means to take the second lowest 8
+// bits, and so on.
+// mode: [0, 8].
+inline void from_16bit_to_8bit(
+  const unsigned short* input,
+  const int             input_item_count,
+  unsigned char*        output,
+  const int             mode)
+{
+  assert(mode >= 0 && mode <= 8);
+  auto input_begin = input;
+  auto input_end = input + input_item_count;
+  int  index = 0;
+
+  while (input_begin != input_end)
+  {
+    output[index++] = static_cast<unsigned char>(((*input_begin++) >> mode) & 0xFF);
+  }
+}
+
 } // namespace nly
 
 #endif

@@ -86,3 +86,57 @@ TEST(Bit, StrToHex)
   fun(" f a b c   ", { 0xfa, 0xbc });
   fun(" f a b c   d", { 0x0f, 0xab, 0xcd });
 }
+
+TEST(Bit, From10BitTo16Bit)
+{
+  // 0xC5: 1100 0101
+  // 0xAF: 1010 1111
+  // 0x37: 0011 0111
+  // 0xFF: 1111 1111
+  // 0xAB: 1010 1011
+  unsigned char  buff[5] = { 0xC5, 0xAF, 0x37, 0xFF, 0xAB };
+  unsigned short out[4] = {};
+
+  nly::from_10bit_to_16bit(buff, 5, out);
+  EXPECT_EQ(out[0], 790);
+  EXPECT_EQ(out[1], 755);
+  EXPECT_EQ(out[2], 511);
+  EXPECT_EQ(out[3], 939);
+}
+
+TEST(Bit, From12BitTo16Bit)
+{
+  // 0xC5: 1100 0101
+  // 0xAF: 1010 1111
+  // 0x37: 0011 0111
+  unsigned char  buff[3] = { 0xC5, 0xAF, 0x37 };
+  unsigned short out[2] = {};
+
+  nly::from_12bit_to_16bit(buff, 3, out);
+  EXPECT_EQ(out[0], 3162);
+  EXPECT_EQ(out[1], 3895);
+}
+
+TEST(Bit, From16BitTo8Bit)
+{
+  // 0xC5: 1100 0101
+  // 0xAF: 1010 1111
+  unsigned short input = 0xC5AF;
+  unsigned char  out = {};
+
+  auto fun = [&input, &out](int mode, int expect)
+  {
+    nly::from_16bit_to_8bit(&input, 1, &out, mode);
+    EXPECT_EQ(out, expect);
+  };
+
+  fun(0, 175);
+  fun(1, 215);
+  fun(2, 107);
+  fun(3, 181);
+  fun(4, 90);
+  fun(5, 45);
+  fun(6, 22);
+  fun(7, 139);
+  fun(8, 197);
+}

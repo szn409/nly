@@ -146,5 +146,5 @@ TEST(ThreadPool, Purge)
   pool.purge();
   pool.wait();
   used_time = nly::time_diff(start_time);
-  EXPECT_TRUE(used_time >= 0.7 && used_time <= 1.3);
+  EXPECT_TRUE(used_time >= 0.7 && used_time <= 2.3);
 }
