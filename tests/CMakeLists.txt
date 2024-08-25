@@ -10,6 +10,7 @@ add_executable(nly_unit_test
   "${CMAKE_CURRENT_SOURCE_DIR}/random_test.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/bit_test.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/thread_pool_test.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/memory_stream_test.cpp"
   )
 
 if(MSVC)
