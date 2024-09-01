@@ -10,3 +10,6 @@
 [submodule "upstream/thread_pool/thread-pool"]
 	path = upstream/thread_pool/thread-pool
 	url = https://github.com/bshoshany/thread-pool.git
+[submodule "upstream/json"]
+	path = upstream/json
+	url = https://github.com/nlohmann/json.git

@@ -40,6 +40,7 @@
 | [fmt](https://github.com/fmtlib/fmt)                    | ADD_FMT_VIA_NLY            |
 | [boost](https://github.com/boostorg/boost)              | ADD_BOOST_VIA_NLY          |
 | [thread-pool](https://github.com/bshoshany/thread-pool) | ADD_BS_THREAD_POOL_VIA_NLY |
+| [json](https://github.com/nlohmann/json.git)            | ADD_NLOHMANN_JSON_VIA_NLY  |
 
 
 
