@@ -12,6 +12,7 @@ add_executable(nly_unit_test
   "${CMAKE_CURRENT_SOURCE_DIR}/thread_pool_test.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/memory_stream_test.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/base64_test.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/network_test.cpp"
   )
 
 if(MSVC)
@@ -22,4 +23,5 @@ add_subdirectory(googletest)
 target_link_libraries(nly_unit_test 
   gtest_main 
   nly 
-  boost_date_time boost_locale boost_signals2 boost_pool)
+  boost_date_time boost_locale boost_signals2 boost_pool boost_beast
+  )
