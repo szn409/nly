@@ -13,3 +13,6 @@
 [submodule "upstream/json"]
 	path = upstream/json
 	url = https://github.com/nlohmann/json.git
+[submodule "upstream/cpp-httplib"]
+	path = upstream/cpp-httplib
+	url = https://github.com/yhirose/cpp-httplib.git
