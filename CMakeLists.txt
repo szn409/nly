@@ -40,3 +40,32 @@ if(ADD_CPP_HTTP_LIB_VIA_NLY)
   add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/upstream/cpp-httplib")
   target_link_libraries(nly INTERFACE httplib)
 endif()
+
+option(ADD_REDIS_PLUS_PLUS_VIA_NLY "Whether to add redis_plus_plus via nly" OFF)
+if(ADD_REDIS_PLUS_PLUS_VIA_NLY)
+
+  # for build and install hiredis
+  set(nly_hiredis_build_path "${CMAKE_BINARY_DIR}/hiredis_build")
+  set(nly_hiredis_install "${CMAKE_BINARY_DIR}/hiredis_install")
+
+  if(NOT EXISTS "${nly_hiredis_install}/include/hiredis/hiredis.h")
+    message(STATUS "----------------------build and install hiredis.----------------------")
+    execute_process(
+      COMMAND ${CMAKE_COMMAND} -B "${nly_hiredis_build_path}" -S "${CMAKE_CURRENT_SOURCE_DIR}/upstream/hiredis"
+    )
+    execute_process(
+      COMMAND ${CMAKE_COMMAND} --build "${nly_hiredis_build_path}" -t hiredis --config "${CMAKE_BUILD_TYPE}"
+    )
+    execute_process(
+      COMMAND ${CMAKE_COMMAND} --install "${nly_hiredis_build_path}" --prefix "${nly_hiredis_install}" --config "${CMAKE_BUILD_TYPE}"
+    )
+  endif()
+
+  set(hiredis_DIR "${nly_hiredis_install}/share/hiredis")
+  set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
+  set(REDIS_PLUS_PLUS_BUILD_TEST OFF)
+  add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/upstream/redis-plus-plus")
+  target_link_libraries(nly INTERFACE redis++)
+  target_include_directories(nly INTERFACE ${redis++_BINARY_DIR}/src)
+
+endif()
