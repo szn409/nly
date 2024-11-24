@@ -4,6 +4,9 @@ project(nly VERSION 0.1.0)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
+set(BUILD_TESTS OFF)
+set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
+
 add_library(nly INTERFACE)
 target_include_directories(nly INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}")
 
@@ -62,10 +65,22 @@ if(ADD_REDIS_PLUS_PLUS_VIA_NLY)
   endif()
 
   set(hiredis_DIR "${nly_hiredis_install}/share/hiredis")
-  set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
   set(REDIS_PLUS_PLUS_BUILD_TEST OFF)
   add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/upstream/redis-plus-plus")
   target_link_libraries(nly INTERFACE redis++)
   target_include_directories(nly INTERFACE ${redis++_BINARY_DIR}/src)
 
+endif()
+
+option(ADD_LIBZMQ_VIA_NLY "Whether to add libzmq via nly" OFF)
+if(ADD_LIBZMQ_VIA_NLY)
+  add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/upstream/libzmq")
+  target_link_libraries(nly INTERFACE libzmq)
+endif()
+
+option(ADD_CPPZMQ_VIA_NLY "Whether to add cppzmq via nly" OFF)
+if(ADD_CPPZMQ_VIA_NLY)
+  set(CPPZMQ_BUILD_TESTS OFF)
+  add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/upstream/cppzmq")
+  target_link_libraries(nly INTERFACE cppzmq)
 endif()

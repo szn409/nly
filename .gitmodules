@@ -22,3 +22,9 @@
 [submodule "upstream/redis-plus-plus"]
 	path = upstream/redis-plus-plus
 	url = https://github.com/sewenew/redis-plus-plus.git
+[submodule "upstream/libzmq"]
+	path = upstream/libzmq
+	url = https://github.com/zeromq/libzmq.git
+[submodule "upstream/cppzmq"]
+	path = upstream/cppzmq
+	url = https://github.com/zeromq/cppzmq.git
