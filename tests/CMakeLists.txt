@@ -1,0 +1,20 @@
+cmake_minimum_required(VERSION 3.13.0)
+project(nly_test VERSION 0.1.0)
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED True)
+
+list(APPEND CMAKE_PREFIX_PATH "${NLY_UPSTREAM_INSTALL}/googletest_install_path")
+list(APPEND CMAKE_PREFIX_PATH "${NLY_UPSTREAM_INSTALL}/abseil-cpp_install_path")
+list(APPEND CMAKE_PREFIX_PATH "${NLY_UPSTREAM_INSTALL}/protobuf_install_path")
+list(APPEND CMAKE_PREFIX_PATH "${NLY_UPSTREAM_INSTALL}/boost_install_path")
+
+find_package(GTest REQUIRED)
+
+add_executable(nly_test 
+  "${CMAKE_CURRENT_SOURCE_DIR}/source/stl_helper/time_count_test.cpp"
+  )
+target_link_libraries(nly_test PUBLIC
+ nly
+ GTest::gtest_main
+ )
