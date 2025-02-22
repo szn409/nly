@@ -37,9 +37,21 @@
           "inheritEnvironments": [ "msvc_x64_x64" ],
           "buildRoot": "${projectDir}\\out\\build\\${name}",
           "installRoot": "${projectDir}\\out\\install\\${name}",
-          "cmakeCommandArgs": "-DCMAKE_BUILD_TYPE=Debug -DENABLE_NLY_UNIT_TEST=ON -DNLY_UPSTREAM_INSTALL=D:/nly_upstream/nly_install",
+          "cmakeCommandArgs": "-DCMAKE_BUILD_TYPE=Debug -DENABLE_NLY_UNIT_TEST=ON -DNLY_UPSTREAM_INSTALL=D:/nly_upstream/nly_install_d",
           "ctestCommandArgs": ""
+        },
+        {
+          "name": "x64-Release",
+          "generator": "Visual Studio 16 2019 Win64",
+          "configurationType": "Release",
+          "buildRoot": "${projectDir}\\out\\build\\${name}",
+          "installRoot": "${projectDir}\\out\\install\\${name}",
+          "cmakeCommandArgs": "-DCMAKE_BUILD_TYPE=Release -DENABLE_NLY_UNIT_TEST=ON -DNLY_UPSTREAM_INSTALL=D:/nly_upstream/nly_install_r",
+          "buildCommandArgs": "",
+          "ctestCommandArgs": "",
+          "inheritEnvironments": [ "msvc_x64_x64" ]
         }
+      ]
     }
     ```
 
