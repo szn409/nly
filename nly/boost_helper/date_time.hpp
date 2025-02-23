@@ -38,7 +38,11 @@ public:
 
   typedef boost::posix_time::time_iterator time_iterator;
   typedef boost::posix_time::time_period   time_period;
-  typedef boost::posix_time::ptime         ptime;
+
+  // 在需要记录 time point 且字符串化时, ptime 比 std::chrono::system_clock::time_point 更好
+  // ptime 自身占用 8 or 16 个字节, 并且支持使用 boost 序列化库进行序列化, 且转换字符串非常方便
+  // std::chrono::system_clock::time_point 转字符串需要 std::localtime 系列函数, 不安全或不方便
+  typedef boost::posix_time::ptime ptime;
 
 public:
   // 对于无效输入, 会抛出 std::out_of_range 异常
