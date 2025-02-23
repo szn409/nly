@@ -14,6 +14,7 @@ find_package(Boost REQUIRED COMPONENTS date_time)
 
 add_executable(nly_test 
   "${CMAKE_CURRENT_SOURCE_DIR}/source/stl_helper/time_count_test.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/source/stl_helper/random_test.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/source/boost_helper/date_time_test.cpp"
   )
 target_link_libraries(nly_test PUBLIC
