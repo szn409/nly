@@ -10,16 +10,17 @@ list(APPEND CMAKE_PREFIX_PATH "${NLY_UPSTREAM_INSTALL}/protobuf_install_path")
 list(APPEND CMAKE_PREFIX_PATH "${NLY_UPSTREAM_INSTALL}/boost_install_path")
 
 find_package(GTest REQUIRED)
-find_package(Boost REQUIRED COMPONENTS date_time beast)
+find_package(Boost REQUIRED COMPONENTS date_time beast locale)
 
 add_executable(nly_test 
   "${CMAKE_CURRENT_SOURCE_DIR}/source/stl_helper/time_count_test.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/source/stl_helper/random_test.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/source/boost_helper/date_time_test.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/source/boost_helper/base64_test.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/source/boost_helper/encoding_test.cpp"
   )
 target_link_libraries(nly_test PUBLIC
  nly
  GTest::gtest_main
- Boost::date_time Boost::beast
+ Boost::date_time Boost::beast Boost::locale
  )
