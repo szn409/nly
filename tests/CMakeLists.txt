@@ -18,6 +18,7 @@ add_executable(nly_test
   "${CMAKE_CURRENT_SOURCE_DIR}/source/boost_helper/date_time_test.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/source/boost_helper/base64_test.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/source/boost_helper/encoding_test.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/source/boost_helper/string_test.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/source/utility_test.cpp"
   )
 target_link_libraries(nly_test PUBLIC
