@@ -1,43 +1,419 @@
 ﻿#ifndef NLY_BOOST_HELPER_STRING
 #define NLY_BOOST_HELPER_STRING
-
 #include "boost/algorithm/string.hpp"
 
 namespace nly
 {
-class string_algo
+
+template<typename t_input, typename t_output, typename t_predicate>
+void split_if(
+  t_input&&   input,
+  t_output&   output,
+  t_predicate pred,
+  bool        compress_adjacent_token = false)
 {
+  boost::split(
+    output,
+    input,
+    pred,
+    compress_adjacent_token ? boost::algorithm::token_compress_on
+                            : boost::algorithm::token_compress_off);
+}
+
+template<typename t_input, typename t_output, typename t_input_element>
+void split(
+  t_input&&               input,
+  t_output&               output,
+  const t_input_element&& separator,
+  bool                    compress_adjacent_token = false)
+{
+  split_if(
+    input,
+    output,
+    [&separator](const t_input_element& value) { return value == separator; },
+    compress_adjacent_token);
+}
+
+// 执行过程是无拷贝的
+template<typename t_input, typename t_predicate>
+class split_fast
+{
+private:
+  typedef boost::algorithm::split_iterator<typename boost::range_iterator<t_input>::type>
+    t_split_iterator;
+
 public:
-  template<typename t_input, typename t_output, typename t_predicate>
-  static void split_if(
-    t_input&&   input,
-    t_output&   output,
-    t_predicate pred,
-    bool        compress_adjacent_token = false)
+  split_fast(const t_input& input, t_predicate pred, bool compress_adjacent_token = false)
   {
-    boost::split(
-      output,
+    this->iter_ = boost::algorithm::make_split_iterator(
       input,
-      pred,
-      compress_adjacent_token ? boost::algorithm::token_compress_on
-                              : boost::algorithm::token_compress_off);
+      boost::algorithm::token_finder(
+        pred,
+        compress_adjacent_token ? boost::algorithm::token_compress_on
+                                : boost::algorithm::token_compress_off));
   }
 
-  template<typename t_input, typename t_output, typename t_input_element>
-  static void split(
-    t_input&&               input,
-    t_output&               output,
-    const t_input_element&& separator,
-    bool                    compress_adjacent_token = false)
-
+  const t_split_iterator& get() const
   {
-    split_if(
-      input,
-      output,
-      [&separator](const t_input_element& value) { return value == separator; },
-      compress_adjacent_token);
+    return this->iter_;
   }
+
+  const t_split_iterator& next()
+  {
+    ++this->iter_;
+    return this->get();
+  }
+
+  const bool is_stop() const
+  {
+    return this->iter_.eof();
+  }
+
+private:
+  t_split_iterator iter_;
 };
+
+// 对于非 ascii 字符串, 使用 std::wstring, 不要使用 std::string 和 std::u16string 和 std::u32string
+template<typename T>
+void to_upper(T& input, const std::locale& loc = std::locale("zh_CN.utf8"))
+{
+  boost::algorithm::to_upper(input, loc);
+}
+
+// 对于非 ascii 字符串, 使用 std::wstring, 不要使用 std::string 和 std::u16string 和 std::u32string
+template<typename T>
+void to_lower(T& input, const std::locale& loc = std::locale("zh_CN.utf8"))
+{
+  boost::algorithm::to_lower(input, loc);
+}
+
+// 当 case_sensitive 为 false 时, 涉及到大小写转换, 参考 to_upper 中的编码说明
+template<typename t_input, typename t_match>
+bool starts_with(
+  const t_input&     input,
+  const t_match&     match,
+  bool               case_sensitive = true,
+  const std::locale& loc = std::locale("zh_CN.utf8"))
+{
+  if (case_sensitive)
+  {
+    return boost::algorithm::starts_with(input, match);
+  }
+
+  return boost::algorithm::istarts_with(input, match, loc);
+}
+
+// 当 case_sensitive 为 false 时, 涉及到大小写转换, 参考 to_upper 中的编码说明
+template<typename t_input, typename t_match>
+bool ends_with(
+  const t_input&     input,
+  const t_match&     match,
+  bool               case_sensitive = true,
+  const std::locale& loc = std::locale("zh_CN.utf8"))
+{
+  if (case_sensitive)
+  {
+    return boost::algorithm::ends_with(input, match);
+  }
+
+  return boost::algorithm::iends_with(input, match, loc);
+}
+
+enum class string_trim_type
+{
+  all,
+  right,
+  left
+};
+
+template<typename t_input>
+void trim(t_input& input, string_trim_type mode = string_trim_type::all)
+{
+  if (string_trim_type::all == mode)
+  {
+    boost::algorithm::trim(input);
+  }
+  else if (string_trim_type::left == mode)
+  {
+    boost::algorithm::trim_left(input);
+  }
+  else
+  {
+    assert(mode == string_trim_type::right);
+    boost::algorithm::trim_right(input);
+  }
+}
+
+template<typename t_input, typename t_predicate>
+void trim_if(t_input& input, t_predicate pred, string_trim_type mode = string_trim_type::all)
+{
+  if (string_trim_type::all == mode)
+  {
+    boost::algorithm::trim_if(input, pred);
+  }
+  else if (string_trim_type::left == mode)
+  {
+    boost::algorithm::trim_left_if(input, pred);
+  }
+  else
+  {
+    assert(mode == string_trim_type::right);
+    boost::algorithm::trim_right_if(input, pred);
+  }
+}
+
+template<typename t_input, typename t_join>
+auto join(const t_input& input, const t_join& join_str)
+{
+  return boost::algorithm::join(input, join_str);
+}
+
+template<typename t_input, typename t_join, typename t_predicate>
+auto join_if(const t_input& input, const t_join& join_str, t_predicate pred)
+{
+  return boost::algorithm::join_if(input, join_str, pred);
+}
+
+// 当 case_sensitive 为 false 时, 涉及到大小写转换, 参考 to_upper 中的编码说明
+template<typename t_input, typename t_test>
+bool contains(
+  const t_input&     input,
+  const t_test&      test,
+  bool               case_sensitive = true,
+  const std::locale& loc = std::locale("zh_CN.utf8"))
+{
+  if (case_sensitive)
+  {
+    return boost::algorithm::contains(input, test);
+  }
+
+  return boost::algorithm::icontains(input, test, loc);
+}
+
+// 当 case_sensitive 为 false 时, 涉及到大小写转换, 参考 to_upper 中的编码说明
+template<typename t_input_1, typename t_input_2>
+bool equals(
+  const t_input_1&   input_1,
+  const t_input_2&   input_2,
+  bool               case_sensitive = true,
+  const std::locale& loc = std::locale("zh_CN.utf8"))
+{
+  if (case_sensitive)
+  {
+    return boost::algorithm::equals(input_1, input_2);
+  }
+
+  return boost::algorithm::iequals(input_1, input_2, loc);
+}
+
+// 当 case_sensitive 为 false 时, 涉及到大小写转换, 参考 to_upper 中的编码说明
+// 此函数内部调用 std::lexicographical_compare
+template<typename t_input_1, typename t_input_2>
+bool lexicographical_compare(
+  const t_input_1&   input_1,
+  const t_input_2&   input_2,
+  bool               case_sensitive = true,
+  const std::locale& loc = std::locale("zh_CN.utf8"))
+{
+  if (case_sensitive)
+  {
+    return boost::algorithm::lexicographical_compare(input_1, input_2);
+  }
+
+  return boost::algorithm::ilexicographical_compare(input_1, input_2, loc);
+}
+
+// 当 case_sensitive 为 false 时, 涉及到大小写转换, 参考 to_upper 中的编码说明
+template<typename t_input, typename t_match>
+auto find_first(
+  const t_input&     input,
+  const t_match&     match,
+  bool               case_sensitive = true,
+  const std::locale& loc = std::locale("zh_CN.utf8"))
+{
+  if (case_sensitive)
+  {
+    return boost::algorithm::find_first(input, match);
+  }
+
+  return boost::algorithm::ifind_first(input, match, loc);
+}
+
+// 当 case_sensitive 为 false 时, 涉及到大小写转换, 参考 to_upper 中的编码说明
+template<typename t_input, typename t_match>
+auto find_last(
+  const t_input&     input,
+  const t_match&     match,
+  bool               case_sensitive = true,
+  const std::locale& loc = std::locale("zh_CN.utf8"))
+{
+  if (case_sensitive)
+  {
+    return boost::algorithm::find_last(input, match);
+  }
+
+  return boost::algorithm::ifind_last(input, match, loc);
+}
+
+// 当 case_sensitive 为 false 时, 涉及到大小写转换, 参考 to_upper 中的编码说明
+template<typename t_input, typename t_match, typename t_replace>
+void replace_first(
+  t_input&           input,
+  const t_match&     match,
+  const t_replace&   replace,
+  bool               case_sensitive = true,
+  const std::locale& loc = std::locale("zh_CN.utf8"))
+{
+  if (case_sensitive)
+  {
+    return boost::algorithm::replace_first(input, match, replace);
+  }
+
+  return boost::algorithm::ireplace_first(input, match, replace, loc);
+}
+
+// 当 case_sensitive 为 false 时, 涉及到大小写转换, 参考 to_upper 中的编码说明
+template<typename t_input, typename t_match, typename t_replace>
+void replace_last(
+  t_input&           input,
+  const t_match&     match,
+  const t_replace&   replace,
+  bool               case_sensitive = true,
+  const std::locale& loc = std::locale("zh_CN.utf8"))
+{
+  if (case_sensitive)
+  {
+    return boost::algorithm::replace_last(input, match, replace);
+  }
+
+  return boost::algorithm::ireplace_last(input, match, replace, loc);
+}
+
+// 当 case_sensitive 为 false 时, 涉及到大小写转换, 参考 to_upper 中的编码说明
+// nth: 从 0 开始计数, 1 标识第二个, -1 标识最后一个, -2 标识最后第二个
+template<typename t_input, typename t_match, typename t_replace>
+void replace_nth(
+  t_input&           input,
+  const t_match&     match,
+  int                nth,
+  const t_replace&   replace,
+  bool               case_sensitive = true,
+  const std::locale& loc = std::locale("zh_CN.utf8"))
+{
+  if (case_sensitive)
+  {
+    return boost::algorithm::replace_nth(input, match, nth, replace);
+  }
+
+  return boost::algorithm::ireplace_nth(input, match, nth, replace, loc);
+}
+
+// 当 case_sensitive 为 false 时, 涉及到大小写转换, 参考 to_upper 中的编码说明
+template<typename t_input, typename t_match, typename t_replace>
+void replace_all(
+  t_input&           input,
+  const t_match&     match,
+  const t_replace&   replace,
+  bool               case_sensitive = true,
+  const std::locale& loc = std::locale("zh_CN.utf8"))
+{
+  if (case_sensitive)
+  {
+    return boost::algorithm::replace_all(input, match, replace);
+  }
+
+  return boost::algorithm::ireplace_all(input, match, replace, loc);
+}
+
+template<typename t_input, typename t_replace>
+void replace_head(t_input& input, int replace_len, const t_replace& replace)
+{
+  return boost::algorithm::replace_head(input, replace_len, replace);
+}
+
+template<typename t_input, typename t_replace>
+void replace_tail(t_input& input, int replace_len, const t_replace& replace)
+{
+  return boost::algorithm::replace_tail(input, replace_len, replace);
+}
+
+// 当 case_sensitive 为 false 时, 涉及到大小写转换, 参考 to_upper 中的编码说明
+template<typename t_input, typename t_erase>
+void erase_first(
+  t_input&           input,
+  const t_erase&     erase,
+  bool               case_sensitive = true,
+  const std::locale& loc = std::locale("zh_CN.utf8"))
+{
+  if (case_sensitive)
+  {
+    return boost::algorithm::erase_first(input, erase);
+  }
+
+  return boost::algorithm::ierase_first(input, erase, loc);
+}
+
+// 当 case_sensitive 为 false 时, 涉及到大小写转换, 参考 to_upper 中的编码说明
+template<typename t_input, typename t_erase>
+void erase_last(
+  t_input&           input,
+  const t_erase&     erase,
+  bool               case_sensitive = true,
+  const std::locale& loc = std::locale("zh_CN.utf8"))
+{
+  if (case_sensitive)
+  {
+    return boost::algorithm::erase_last(input, erase);
+  }
+
+  return boost::algorithm::ierase_last(input, erase, loc);
+}
+
+// 当 case_sensitive 为 false 时, 涉及到大小写转换, 参考 to_upper 中的编码说明
+// nth: 从 0 开始计数, 1 标识第二个, -1 标识最后一个, -2 标识最后第二个
+template<typename t_input, typename t_erase>
+void erase_nth(
+  t_input&           input,
+  const t_erase&     erase,
+  int                nth,
+  bool               case_sensitive = true,
+  const std::locale& loc = std::locale("zh_CN.utf8"))
+{
+  if (case_sensitive)
+  {
+    return boost::algorithm::erase_nth(input, erase, nth);
+  }
+
+  return boost::algorithm::ierase_nth(input, erase, nth, loc);
+}
+
+// 当 case_sensitive 为 false 时, 涉及到大小写转换, 参考 to_upper 中的编码说明
+template<typename t_input, typename t_erase>
+void erase_all(
+  t_input&           input,
+  const t_erase&     erase,
+  bool               case_sensitive = true,
+  const std::locale& loc = std::locale("zh_CN.utf8"))
+{
+  if (case_sensitive)
+  {
+    return boost::algorithm::erase_all(input, erase);
+  }
+
+  return boost::algorithm::ierase_all(input, erase, loc);
+}
+
+template<typename t_input>
+void erase_head(t_input& input, int erase_len)
+{
+  return boost::algorithm::erase_head(input, erase_len);
+}
+
+template<typename t_input>
+void erase_tail(t_input& input, int erase_len)
+{
+  return boost::algorithm::erase_tail(input, erase_len);
+}
 
 } // namespace nly
 
