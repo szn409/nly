@@ -15,6 +15,9 @@
 * 方式二：
   * 使用 [nly_upstream](https://github.com/szn409/nly_upstream.git)
   * 本项目的测试用例采用此方式搭建
+* BS_thread_pool.hpp
+  * 拷贝自 https://github.com/bshoshany/thread-pool/releases/tag/v5.0.0
+
 
 
 

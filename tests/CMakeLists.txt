@@ -27,6 +27,7 @@ add_executable(nly_test
   "${CMAKE_CURRENT_SOURCE_DIR}/source/utility_test.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/source/bit_test.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/source/memory_stream_test.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/source/thread_pool_test.cpp"
   )
 target_link_libraries(nly_test PUBLIC
  nly
