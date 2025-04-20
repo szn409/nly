@@ -23,6 +23,7 @@ add_executable(nly_test
   "${CMAKE_CURRENT_SOURCE_DIR}/source/boost_helper/base64_test.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/source/boost_helper/encoding_test.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/source/boost_helper/string_test.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/source/boost_helper/memory_pool_test.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/source/geometry_test.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/source/utility_test.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/source/bit_test.cpp"
