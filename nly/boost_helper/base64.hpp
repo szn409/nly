@@ -40,7 +40,7 @@ public:
     return result.second;
   }
 
-  std::vector<unsigned char> decode(
+  static std::vector<unsigned char> decode(
     const char*  input,
     const size_t input_bytes,
     size_t*      real_read_bytes = nullptr)
