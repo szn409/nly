@@ -3,11 +3,11 @@
 
 TEST(Bit, byteswap)
 {
-  EXPECT_TRUE(0x12 == nly::byteswap(static_cast<char>(0x12)));
-  EXPECT_TRUE(0x3412 == nly::byteswap(static_cast<short>(0x1234)));
+  EXPECT_TRUE(static_cast<char>(0x12) == nly::byteswap(static_cast<char>(0x12)));
+  EXPECT_TRUE(static_cast<short>(0x3412) == nly::byteswap(static_cast<short>(0x1234)));
   EXPECT_TRUE(0x34120000 == nly::byteswap(0x1234));
   EXPECT_TRUE(0xCCDDEEFF == nly::byteswap(0xFFEEDDCC));
-  EXPECT_TRUE(0xCCDDEEFF00000011 == nly::byteswap(0x11000000FFEEDDCCLL));
+  EXPECT_TRUE(0xCCDDEEFF00000011LL == nly::byteswap(0x11000000FFEEDDCCLL));
 }
 
 TEST(Bit, HexToStr)
