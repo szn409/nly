@@ -19,6 +19,7 @@ find_package(fmt REQUIRED)
 add_executable(nly_test 
   "${CMAKE_CURRENT_SOURCE_DIR}/source/stl_helper/time_count_test.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/source/stl_helper/random_test.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/source/stl_helper/algorithm_test.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/source/boost_helper/date_time_test.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/source/boost_helper/base64_test.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/source/boost_helper/encoding_test.cpp"
@@ -32,6 +33,7 @@ add_executable(nly_test
   "${CMAKE_CURRENT_SOURCE_DIR}/source/thread_pool_test.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/source/math_test.cpp"
   )
+
 target_link_libraries(nly_test PUBLIC
  nly
  GTest::gtest_main
