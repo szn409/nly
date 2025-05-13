@@ -282,7 +282,7 @@ NLY_ALGO_TWO_CONTAINER(equal)
 NLY_ALGO_TWO_CONTAINER_WITH_ONE_PARAM(equal)
 
 /*
-在第一个容器中, 搜索第二个容器元素首次出现的位置
+将第二个容器视为子序列, 在第一个容器中进行搜索, 返回其首次出现的位置
 无谓语版本: 使用 operator =
 谓语版本: 使用二元谓语
 注意: 存在其他重载版本, 可指定不同的搜索算法, 未进行兼容
@@ -290,26 +290,38 @@ NLY_ALGO_TWO_CONTAINER_WITH_ONE_PARAM(equal)
 NLY_ALGO_TWO_CONTAINER(search)
 NLY_ALGO_TWO_CONTAINER_WITH_ONE_PARAM(search)
 
-// 在容器中, 搜索连续 count 个元素, 其值等于 value 或使得二元谓语成立
+/*
+在容器中, 搜索连续 count 个元素, 其值等于 value 或使得二元谓语成立
+形式:
+  search_n(container, count, target_value)
+  search_n(container, count, target_value, fun)
+对于二元谓语
+  第一个参数: 来自容器
+  第二个参数: target_value
+*/
 NLY_ALGO_ONE_CONTAINER_WITH_TWO_PARAM(search_n)
 NLY_ALGO_ONE_CONTAINER_WITH_THREE_PARAM(search_n)
 
 /*
 1. 由于并行要求, 对于输出使用 std::back_inserter 会导致编译错误, 所以需要自行保证输出容器 size 够大
-2. 当重叠且目标位于源的左侧, 此时可以使用 copy, 不可以使用 copy_backward
+2. 当源与目标有重叠时
+    A. 当目标位于源的左侧, 此时可以使用 copy, 不可以使用 copy_backward
+    B. 当目标位于源的右侧, 应该使用 copy_backward, 而不是 copy
+    C. move 和 move_backward 参考上述两条规则
 3. 此 hpp 声明的函数, 均操作整个容器, 所以 copy_n 未纳入
-4. copy_backward 亦未纳入, 在源与目标存在重叠, 且目标位于源的右侧时, 应该使用此函数而不是 copy
-5. move_backward 亦未纳入
 */
 NLY_ALGO_ONE_CONTAINER_WITH_ONE_PARAM(copy)
 NLY_ALGO_ONE_CONTAINER_WITH_TWO_PARAM(copy_if)
+NLY_ALGO_NOT_PARALLEL_ONE_CONTAINER_WITH_ONE_PARAM(copy_backward) // 注意: 非并发
 NLY_ALGO_ONE_CONTAINER_WITH_ONE_PARAM(move)
+NLY_ALGO_NOT_PARALLEL_ONE_CONTAINER_WITH_ONE_PARAM(move_backward) // 注意: 非并发
 
 using std::iter_swap;
 using std::swap;
 NLY_ALGO_ONE_CONTAINER_WITH_ONE_PARAM(swap_ranges)
 
 // 将一个或两个容器中的元素, 经过转换, 输出到指定的输出迭代器中
+// 由于并行要求, 对于输出使用 std::back_inserter 会导致编译错误, 所以需要自行保证输出容器 size 够大
 NLY_ALGO_ONE_CONTAINER_WITH_TWO_PARAM(transform)
 NLY_ALGO_ONE_CONTAINER_WITH_THREE_PARAM(transform)
 
@@ -352,7 +364,7 @@ NLY_ALGO_ONE_CONTAINER_WITH_ONE_PARAM(reverse_copy)
 NLY_ALGO_ONE_CONTAINER(sort)
 NLY_ALGO_ONE_CONTAINER_WITH_ONE_PARAM(sort)
 
-// sort 的稳地版本
+// sort 的稳定版本
 NLY_ALGO_ONE_CONTAINER(stable_sort)
 NLY_ALGO_ONE_CONTAINER_WITH_ONE_PARAM(stable_sort)
 
@@ -399,6 +411,7 @@ void sample(t_container& container, t_out out_iterator, size_t sample_count)
 }
 
 // 重排序容器中的元素，使得谓语返回 true 的元素, 位于使得谓语返回 false 的元素之前（不保持相对顺序）
+// 返回值：指向划分点的迭代器, 即第一个不满足一元谓语的元素
 NLY_ALGO_ONE_CONTAINER_WITH_ONE_PARAM(partition)
 
 // partition 的稳定版本
@@ -411,8 +424,7 @@ NLY_ALGO_ONE_CONTAINER_WITH_ONE_PARAM(stable_partition)
   第三个参数: 保存使得谓语为 false 的元素
   第四个参数: 一元谓语
 
-注意: 由于并行要求, 对于输出使用 std::back_inserter 会导致编译错误, 所以需要自行保证输出容器 size
-够大
+由于并行要求, 对于输出使用 std::back_inserter 会导致编译错误, 所以需要自行保证输出容器 size 够大
 */
 NLY_ALGO_ONE_CONTAINER_WITH_THREE_PARAM(partition_copy)
 
@@ -420,7 +432,7 @@ NLY_ALGO_ONE_CONTAINER_WITH_THREE_PARAM(partition_copy)
 // 容器为空也返回 true
 NLY_ALGO_ONE_CONTAINER_WITH_ONE_PARAM(is_partitioned)
 
-// 返回已划分容器的划分点, 即第一个不满足一元谓语的元素
+// 返回已划分容器的划分点, 即指向第一个不满足一元谓语的元素
 // 若所有元素均满足谓语, 则返回容器的尾后迭代器
 // 注意: 输入的容器, 一定要是已划分的
 NLY_ALGO_NOT_PARALLEL_ONE_CONTAINER_WITH_ONE_PARAM(partition_point)
@@ -502,7 +514,7 @@ NLY_ALGO_TWO_CONTAINER_WITH_ONE_PARAM(includes)
 
 /*
 求两个有序容器的 并集
-注意: 由于并行要求, 对于输出使用 std::back_inserter 会导致编译错误, 所以需要自行保证输出容器 size
+由于并行要求, 对于输出使用 std::back_inserter 会导致编译错误, 所以需要自行保证输出容器 size 够大
 够大 若两个容器存在相等元素, 优先选取来自第一个容器的元素
 */
 NLY_ALGO_TWO_CONTAINER_WITH_ONE_PARAM(set_union)
@@ -510,24 +522,21 @@ NLY_ALGO_TWO_CONTAINER_WITH_TWO_PARAM(set_union)
 
 /*
 求两个有序容器的 交集
-注意: 由于并行要求, 对于输出使用 std::back_inserter 会导致编译错误, 所以需要自行保证输出容器 size
-够大
+由于并行要求, 对于输出使用 std::back_inserter 会导致编译错误, 所以需要自行保证输出容器 size 够大
 */
 NLY_ALGO_TWO_CONTAINER_WITH_ONE_PARAM(set_intersection)
 NLY_ALGO_TWO_CONTAINER_WITH_TWO_PARAM(set_intersection)
 
 /*
 求两个有序容器的 差集, 第一个容器 - 第二个容器
-注意: 由于并行要求, 对于输出使用 std::back_inserter 会导致编译错误, 所以需要自行保证输出容器 size
-够大
+由于并行要求, 对于输出使用 std::back_inserter 会导致编译错误, 所以需要自行保证输出容器 size 够大
 */
 NLY_ALGO_TWO_CONTAINER_WITH_ONE_PARAM(set_difference)
 NLY_ALGO_TWO_CONTAINER_WITH_TWO_PARAM(set_difference)
 
 /*
 求两个有序容器的 对称差集: 将处于任一容器，但未在两个容器中均被找到的元素
-注意: 由于并行要求, 对于输出使用 std::back_inserter 会导致编译错误, 所以需要自行保证输出容器 size
-够大
+由于并行要求, 对于输出使用 std::back_inserter 会导致编译错误, 所以需要自行保证输出容器 size 够大
 */
 NLY_ALGO_TWO_CONTAINER_WITH_ONE_PARAM(set_symmetric_difference)
 NLY_ALGO_TWO_CONTAINER_WITH_TWO_PARAM(set_symmetric_difference)

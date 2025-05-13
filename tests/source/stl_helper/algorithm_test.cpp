@@ -227,13 +227,14 @@ TEST(Algorithm, Equal)
   std::vector<int> vec_2{ 0, 1, 2, 4, 5 };
   std::vector<int> vec_3(vec_base);
 
-  EXPECT_TRUE(!nly::equal(vec_base, vec_1));
-  EXPECT_TRUE(!nly::equal(vec_base, vec_2, true));
-  EXPECT_TRUE(!nly::equal(vec_base, vec_2));
-  EXPECT_TRUE(!nly::equal(vec_base, vec_2, true));
-  EXPECT_TRUE(nly::equal(vec_base, vec_3));
-  EXPECT_TRUE(nly::equal(vec_base, vec_3, true));
-  EXPECT_TRUE(nly::equal(vec_base, vec_2, [](int a, int b) { return std::abs(a - b) <= 2; }, true));
+  for (int i = 0; i < 2; ++i)
+  {
+    EXPECT_TRUE(!nly::equal(vec_base, vec_1, i == 0));
+    EXPECT_TRUE(!nly::equal(vec_base, vec_2, i == 0));
+    EXPECT_TRUE(nly::equal(vec_base, vec_3, i == 0));
+    EXPECT_TRUE(
+      nly::equal(vec_base, vec_2, [](int a, int b) { return std::abs(a - b) <= 2; }, i == 0));
+  }
 }
 
 TEST(Algorithm, Search)
@@ -242,9 +243,11 @@ TEST(Algorithm, Search)
   int value_2[] = { 1, 2, 3 };
   int value_3[] = { 10, 20, 30 };
 
-  EXPECT_TRUE(nly::search(value_1, value_2) == value_1 + 1);
-  EXPECT_TRUE(nly::search(value_1, value_2, true) == value_1 + 1);
-  EXPECT_TRUE(nly::search(value_1, value_3, true) == std::end(value_1));
+  for (int i = 0; i < 2; ++i)
+  {
+    EXPECT_TRUE(nly::search(value_1, value_2, i == 0) == value_1 + 1);
+    EXPECT_TRUE(nly::search(value_1, value_3, i == 0) == std::end(value_1));
+  }
 
   const char str[] = "abc szn xyz szn";
   const char tmp[] = "szn";
@@ -257,9 +260,14 @@ TEST(Algorithm, SearchN)
 {
   int value[] = { 1, 2, 3, 1, 5, 7, 8, 8, 9 };
 
-  auto fun = [](int a, int b) {};
-  EXPECT_TRUE(nly::search_n(value, 2, 8, true) - value == 6);
-  EXPECT_TRUE(nly::search_n(value, 3, 2, [](int a, int b) { return a >= b; }) - value == 4);
+  for (int i = 0; i < 2; ++i)
+  {
+    EXPECT_TRUE(nly::search_n(value, 2, 8, i == 0) - value == 6);
+    EXPECT_TRUE(
+      nly::search_n(value, 3, 2, [](int a, int b) { return a >= b; }, i == 0) - value == 4);
+
+    return;
+  }
 }
 
 TEST(Algorithm, Copy)
@@ -273,31 +281,32 @@ TEST(Algorithm, Copy)
     vec.resize(5);
   };
 
-  reset();
-  nly::copy(value, vec.begin());
-  EXPECT_TRUE(nly::equal(value, vec));
-
-  reset();
-  nly::copy(value, vec.begin(), true);
-  EXPECT_TRUE(nly::equal(value, vec));
-
   auto fun = [](int value) { return value % 2; };
 
-  reset();
-  vec.erase(nly::copy_if(value, vec.begin(), fun), vec.end());
-  EXPECT_TRUE(nly::equal(std::vector<int>{ 1, 3, 5 }, vec));
+  for (int i = 0; i < 2; ++i)
+  {
+    reset();
+    nly::copy(value, vec.begin(), i == 0);
+    EXPECT_TRUE(nly::equal(value, vec));
+
+    reset();
+    vec.erase(nly::copy_if(value, vec.begin(), fun, i == 0), vec.end());
+    EXPECT_TRUE(nly::equal(std::vector<int>{ 1, 3, 5 }, vec));
+  }
 
   reset();
-  vec.erase(nly::copy_if(value, vec.begin(), fun, true), vec.end());
-  EXPECT_TRUE(nly::equal(std::vector<int>{ 1, 3, 5 }, vec));
+  nly::copy_backward(value, vec.end());
+  EXPECT_TRUE(nly::equal(value, vec));
 
-  std::vector<int> tmp{ 1, 2, 3, 4, 5 };
-  std::copy_backward(tmp.begin(), tmp.begin() + 3, tmp.end());
-  EXPECT_TRUE(nly::equal(tmp, std::vector<int>{ 1, 2, 1, 2, 3 }));
+  {
+    std::vector<int> tmp{ 1, 2, 3, 4, 5 };
+    std::copy_backward(tmp.begin(), tmp.begin() + 3, tmp.end());
+    EXPECT_TRUE(nly::equal(tmp, std::vector<int>{ 1, 2, 1, 2, 3 }));
 
-  std::vector<int> tmp1{ 1, 2, 3, 4, 5 };
-  std::copy(tmp1.begin() + 3, tmp1.end(), tmp1.begin());
-  EXPECT_TRUE(nly::equal(tmp1, std::vector<int>{ 4, 5, 3, 4, 5 }));
+    std::vector<int> tmp1{ 1, 2, 3, 4, 5 };
+    std::copy(tmp1.begin() + 3, tmp1.end(), tmp1.begin());
+    EXPECT_TRUE(nly::equal(tmp1, std::vector<int>{ 4, 5, 3, 4, 5 }));
+  }
 }
 
 TEST(Algorithm, Move)
@@ -311,6 +320,14 @@ TEST(Algorithm, Move)
     vec = get_base();
     decltype(vec) vec_1(3);
     nly::move(vec, vec_1.begin(), 0 == i);
+    EXPECT_TRUE(nly::equal(vec_1, get_base()));
+    EXPECT_TRUE(nly::all_of(vec, [](const std::string& item) { return item.empty(); }));
+  }
+
+  {
+    vec = get_base();
+    decltype(vec) vec_1(3);
+    nly::move_backward(vec, vec_1.end());
     EXPECT_TRUE(nly::equal(vec_1, get_base()));
     EXPECT_TRUE(nly::all_of(vec, [](const std::string& item) { return item.empty(); }));
   }
@@ -351,7 +368,6 @@ TEST(Algorithm, Transform)
 {
   for (int i = 0; i < 2; ++i)
   {
-
     std::vector<int> vec_0{ 1, 2, 3 };
     std::vector<int> vec_1(3);
 
@@ -686,8 +702,9 @@ TEST(Algorithm, Partition)
     auto out = get_base();
 
     nly::shuffle(out);
-    nly::partition(out, fun, i == 0);
+    auto res = nly::partition(out, fun, i == 0);
     EXPECT_TRUE(nly::is_partitioned(out, fun, i == 0));
+    EXPECT_TRUE(nly::partition_point(out, fun) == res);
 
     nly::shuffle(out);
     nly::stable_partition(out, fun, i == 0);
