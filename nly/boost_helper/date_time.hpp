@@ -6,6 +6,10 @@
 
 #include "boost/date_time/gregorian/gregorian.hpp"
 #include "boost/date_time/posix_time/posix_time.hpp"
+#include "nly/boost_helper/string.hpp"
+#include "fmt/format.h"
+#include <array>
+#include <optional>
 
 namespace nly
 {
@@ -213,6 +217,85 @@ public:
   static tm to_tm(const ptime& t)
   {
     return boost::posix_time::to_tm(t);
+  }
+
+public:
+  /*
+  功能: 获取当前的时间字符串, 可自定义格式(默认格式为: XXXX-XX-XX XX-XX-XX)
+  形参:
+    num_fractional: 秒后的小数部分的位数, 0 标识没有小数部分
+    seg_ymd: 年月日之间的分隔符
+    seg_join: 用于连接年月日和时分秒
+    seg_hms: 时分秒之间的分隔符
+    seg_fractional: 秒后的小数部分与秒之间的分隔符, 若 num_fractional 为 0, 则结果不含此部分
+    use_local_time:
+      true: 使用本地时区
+      false: 使用 universal 时区
+  注意: 若传入的分隔符无效, 则标识不使用分隔符
+  */
+  static std::string get_now_time_str(
+    int                        num_fractional = 0,
+    std::optional<std::string> seg_ymd = "-",
+    std::optional<std::string> seg_join = " ",
+    std::optional<std::string> seg_hms = "-",
+    std::optional<std::string> seg_fractional = ".",
+    bool                       use_local_time = true)
+  {
+    boost_date_time::ptime now_time;
+
+    if (use_local_time)
+    {
+      if (0 == num_fractional)
+      {
+        now_time = boost_date_time::local_time();
+      }
+      else
+      {
+        now_time = boost_date_time::local_micro_time();
+      }
+    }
+    else
+    {
+      if (0 == num_fractional)
+      {
+        now_time = boost_date_time::universal_time();
+      }
+      else
+      {
+        now_time = boost_date_time::universal_micro_time();
+      }
+    }
+
+    std::array<std::string, 3> tmp;
+    fmt::format_string<char>   fmt_str("{:02}");
+
+    const auto date = now_time.date();
+    tmp[0] = std::to_string(static_cast<unsigned short>(date.year()));
+    tmp[1] = fmt::format(fmt_str, date.month().as_number());
+    tmp[2] = fmt::format(fmt_str, date.day().as_number());
+    const std::string date_part = nly::join(tmp, seg_ymd ? *seg_ymd : "");
+
+    const auto time_of_day = now_time.time_of_day();
+    tmp[0] = fmt::format(fmt_str, time_of_day.hours());
+    tmp[1] = fmt::format(fmt_str, time_of_day.minutes());
+    tmp[2] = fmt::format(fmt_str, time_of_day.seconds());
+    const std::string time_part = nly::join(tmp, seg_hms ? *seg_hms : "");
+
+    auto output = date_part + (seg_join ? *seg_join : "") + time_part;
+
+    if (num_fractional)
+    {
+      std::string fractional_part =
+        fmt::format("{:0<{}}", time_of_day.fractional_seconds(), num_fractional);
+      if (fractional_part.size() > num_fractional)
+      {
+        fractional_part.resize(num_fractional);
+      }
+
+      output += ((seg_fractional ? *seg_fractional : "") + fractional_part);
+    }
+
+    return output;
   }
 };
 

@@ -1,5 +1,6 @@
 #include "gtest/gtest.h"
 #include "nly/boost_helper/date_time.hpp"
+#include <regex>
 
 TEST(DateTime, Date)
 {
@@ -75,4 +76,71 @@ TEST(DateTime, PTime)
   EXPECT_TRUE(
     nly::boost_date_time::ptime_from_tm(t) ==
     nly::boost_date_time::make_ptime(2020, 1, 30, 1, 2, 3));
+}
+
+TEST(DateTime, GetTimeForFilesystem)
+{
+  auto result = nly::boost_date_time::get_now_time_str();
+  EXPECT_TRUE(
+    std::regex_match(
+      result,
+      std::regex("^[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}-[0-9]{2}-[0-9]{2}$")));
+
+  result = nly::boost_date_time::get_now_time_str(0, "ABC");
+  EXPECT_TRUE(!std::regex_match(
+    result,
+    std::regex("^[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}-[0-9]{2}-[0-9]{2}$")));
+  EXPECT_TRUE(
+    std::regex_match(
+      result,
+      std::regex("^[0-9]{4}ABC[0-9]{2}ABC[0-9]{2} [0-9]{2}-[0-9]{2}-[0-9]{2}$")));
+
+  result = nly::boost_date_time::get_now_time_str(0, {});
+  EXPECT_TRUE(
+    std::regex_match(result, std::regex("^[0-9]{4}[0-9]{2}[0-9]{2} [0-9]{2}-[0-9]{2}-[0-9]{2}$")));
+
+  result = nly::boost_date_time::get_now_time_str(0, {}, "_hello_");
+  EXPECT_TRUE(
+    std::regex_match(
+      result,
+      std::regex("^[0-9]{4}[0-9]{2}[0-9]{2}_hello_[0-9]{2}-[0-9]{2}-[0-9]{2}$")));
+
+  result = nly::boost_date_time::get_now_time_str(0, {}, {});
+  EXPECT_TRUE(
+    std::regex_match(result, std::regex("^[0-9]{4}[0-9]{2}[0-9]{2}[0-9]{2}-[0-9]{2}-[0-9]{2}$")));
+
+  result = nly::boost_date_time::get_now_time_str(0, {}, " ", "__");
+  EXPECT_TRUE(
+    std::regex_match(
+      result,
+      std::regex("^[0-9]{4}[0-9]{2}[0-9]{2} [0-9]{2}__[0-9]{2}__[0-9]{2}$")));
+
+  result = nly::boost_date_time::get_now_time_str(0, {}, " ", {});
+  EXPECT_TRUE(
+    std::regex_match(result, std::regex("^[0-9]{4}[0-9]{2}[0-9]{2} [0-9]{2}[0-9]{2}[0-9]{2}$")));
+
+  result = nly::boost_date_time::get_now_time_str(1, "__", "__", "__", ".");
+  EXPECT_TRUE(
+    std::regex_match(
+      result,
+      std::regex("^[0-9]{4}__[0-9]{2}__[0-9]{2}__[0-9]{2}__[0-9]{2}__[0-9]{2}.[0-9]{1}$")));
+
+  result = nly::boost_date_time::get_now_time_str(2, "__", "__", "__", {});
+  EXPECT_TRUE(
+    std::regex_match(
+      result,
+      std::regex("^[0-9]{4}__[0-9]{2}__[0-9]{2}__[0-9]{2}__[0-9]{2}__[0-9]{2}[0-9]{2}$")));
+
+  result = nly::boost_date_time::get_now_time_str(6, "__", "__", "__", "_hello_");
+  EXPECT_TRUE(
+    std::regex_match(
+      result,
+      std::regex("^[0-9]{4}__[0-9]{2}__[0-9]{2}__[0-9]{2}__[0-9]{2}__[0-9]{2}_hello_[0-9]{6}$")));
+
+  result = nly::boost_date_time::get_now_time_str(12, "__", "__", "__", "_hello_");
+  EXPECT_TRUE(
+    std::regex_match(
+      result,
+      std::regex("^[0-9]{4}__[0-9]{2}__[0-9]{2}__[0-9]{2}__[0-9]{2}__[0-9]{2}_hello_[0-9]{12}$")));
+  EXPECT_TRUE(result.back() == '0');
 }
