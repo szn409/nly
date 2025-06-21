@@ -5,6 +5,8 @@
 
 namespace nly
 {
+
+// 此类标记为抛弃, 使用 pool.hpp 中定义的组件进行替代
 template<typename t_mutex = boost::signals2::dummy_mutex>
 class memory_pool
 {

@@ -24,14 +24,13 @@ add_executable(nly_test
   "${CMAKE_CURRENT_SOURCE_DIR}/source/boost_helper/base64_test.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/source/boost_helper/encoding_test.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/source/boost_helper/string_test.cpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/source/boost_helper/memory_pool_test.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/source/boost_helper/serialization_test.cpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/source/geometry_test.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/source/utility_test.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/source/bit_test.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/source/memory_stream_test.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/source/thread_pool_test.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/source/math_test.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/source/pool_test.cpp"
   )
 
 target_link_libraries(nly_test PUBLIC
@@ -41,3 +40,7 @@ target_link_libraries(nly_test PUBLIC
  fmt::fmt
  ${OpenCV_LIBS}
  )
+
+if(MSVC)
+  target_compile_options(nly_test PUBLIC "/W4")
+endif()

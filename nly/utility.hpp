@@ -1,6 +1,8 @@
 ﻿#ifndef NLY_UTILITY
 #define NLY_UTILITY
 #include <functional>
+#include "boost/signals2/dummy_mutex.hpp"
+#include "boost/utility.hpp"
 
 namespace nly
 {
@@ -25,6 +27,9 @@ public:
 private:
   std::function<void()> m_fun;
 };
+
+using boost::noncopyable;
+using boost::signals2::dummy_mutex;
 
 } // namespace nly
 
