@@ -173,3 +173,226 @@ TEST(Geometry, Polygon)
   EXPECT_TRUE(23 == nly::geometry::area(poly));
   EXPECT_TRUE(28 == nly::geometry::perimeter(poly));
 }
+
+template<typename t_point, typename t_geometry_small, typename t_geometry_big>
+void check_winthin(
+  const t_geometry_small& g_small,
+  const t_geometry_big&   g_big,
+  bool                    for_default,
+  bool                    for_winding,
+  bool                    for_franklin,
+  bool                    for_crossings_multiply)
+{
+  EXPECT_TRUE(nly::geometry::within(g_small, g_big) == for_default);
+  EXPECT_TRUE(nly::geometry::within(g_small, g_big, 0) == for_winding);
+  EXPECT_TRUE(nly::geometry::within(g_small, g_big, 1) == for_franklin);
+  EXPECT_TRUE(nly::geometry::within(g_small, g_big, 2) == for_crossings_multiply);
+}
+
+TEST(Geometry, Within)
+{
+  {
+    nly::geometry::polygon2i star;
+    star.outer().emplace_back(0, 100);
+    star.outer().emplace_back(-58, -81);
+    star.outer().emplace_back(95, 31);
+    star.outer().emplace_back(-95, 31);
+    star.outer().emplace_back(58, -81);
+    star.outer().emplace_back(0, 100);
+    nly::geometry::correct(star);
+    check_winthin<nly::geometry::point2i>(nly::geometry::point2i{}, star, true, true, false, false);
+    check_winthin<nly::geometry::point2i>(
+      nly::geometry::point2i{ 1000, 1000 },
+      star,
+      false,
+      false,
+      false,
+      false);
+    check_winthin<nly::geometry::point2i>(
+      nly::geometry::point2i{ 0, 100 },
+      star,
+      false,
+      false,
+      false,
+      true);
+    check_winthin<nly::geometry::point2i>(
+      nly::geometry::point2i{ -58, -81 },
+      star,
+      false,
+      false,
+      false,
+      false);
+    check_winthin<nly::geometry::point2i>(
+      nly::geometry::point2i{ 95, 31 },
+      star,
+      false,
+      false,
+      false,
+      false);
+    check_winthin<nly::geometry::point2i>(
+      nly::geometry::point2i{ -95, 31 },
+      star,
+      false,
+      false,
+      false,
+      false);
+    check_winthin<nly::geometry::point2i>(
+      nly::geometry::point2i{ 58, -81 },
+      star,
+      false,
+      false,
+      false,
+      false);
+  }
+
+  {
+    auto rect = nly::geometry::make_rect(-100, -100, 100, 100);
+    check_winthin<nly::geometry::point2i>(nly::geometry::point2i{}, rect, true, true, true, true);
+    check_winthin<nly::geometry::point2i>(
+      nly::geometry::point2i{ 1000, 1000 },
+      rect,
+      false,
+      false,
+      false,
+      false);
+    check_winthin<nly::geometry::point2i>(
+      nly::geometry::point2i{ -100, 0 },
+      rect,
+      false,
+      false,
+      false,
+      false);
+    check_winthin<nly::geometry::point2i>(
+      nly::geometry::point2i{ -100, -100 },
+      rect,
+      false,
+      false,
+      false,
+      false);
+    check_winthin<nly::geometry::point2i>(
+      nly::geometry::point2i{ 100, 100 },
+      rect,
+      false,
+      false,
+      false,
+      false);
+
+    check_winthin<nly::geometry::point2i>(rect, rect, true, true, true, true);
+  }
+
+  {
+    auto rect_0 = nly::geometry::make_rect(-100, -100, 50, 50);
+    auto rect_1 = nly::geometry::make_rect(-100, -100, 100, 100);
+    check_winthin<nly::geometry::point2i>(rect_0, rect_1, true, true, true, true);
+  }
+}
+
+TEST(Geometry, TransformRotate)
+{
+  {
+    auto check = [](double angle_rad)
+    {
+      nly::geometry::point2d output;
+      EXPECT_TRUE(nly::geometry::rotate(nly::geometry::point2d(1, 0), output, angle_rad));
+      EXPECT_TRUE(nly::math::float_equal(output.x(), std::cos(angle_rad)));
+      EXPECT_TRUE(nly::math::float_equal(output.y(), std::sin(angle_rad)));
+    };
+    for (int i = 0; i < 1000; i += 15)
+    {
+      check(nly::math::to_rad(i));
+    }
+  }
+
+  {
+    nly::geometry::point2d output;
+    EXPECT_TRUE(
+      nly::geometry::rotate(
+        nly::geometry::point2d(10, 20),
+        output,
+        nly::math::to_rad(30),
+        nly::geometry::point2d(1, 2)));
+    EXPECT_TRUE(nly::math::float_equal(output.x(), -0.206, 0.001));
+    EXPECT_TRUE(nly::math::float_equal(output.y(), 22.088, 0.001));
+  }
+
+  {
+    nly::geometry::point2d output;
+    EXPECT_TRUE(
+      nly::geometry::rotate(
+        nly::geometry::point2d(10, 20),
+        output,
+        nly::math::to_rad(90),
+        nly::geometry::point2d(10, 15)));
+    EXPECT_TRUE(nly::math::float_equal(output.x(), 5));
+    EXPECT_TRUE(nly::math::float_equal(output.y(), 15));
+  }
+
+  {
+    nly::geometry::ring2d ring;
+    ring.emplace_back(10, 10);
+    ring.emplace_back(10, 20);
+    ring.emplace_back(20, 20);
+    ring.emplace_back(20, 10);
+    nly::geometry::correct(ring);
+
+    nly::geometry::ring2d output;
+    nly::geometry::rotate(ring, output, nly::math::to_rad(45), nly::geometry::point2d(15, 15));
+
+    auto check = [&output](int index, double x, double y)
+    {
+      auto diff = 0.0000001;
+      EXPECT_TRUE(nly::math::float_equal(output.at(index).x(), x, diff));
+      EXPECT_TRUE(nly::math::float_equal(output.at(index).y(), y, diff));
+    };
+
+    int index = 0;
+    check(index++, 14.99999991, 7.928932188);
+    check(index++, 7.928932188, 15.00000009);
+    check(index++, 15.00000009, 22.07106781);
+    check(index++, 22.07106781, 14.99999991);
+    check(index++, 14.99999991, 7.928932188);
+  }
+}
+
+TEST(Geometry, TransformMove)
+{
+  {
+    nly::geometry::point2i output;
+    EXPECT_TRUE(nly::geometry::move(nly::geometry::point2i(10, 20), output, -10, -20));
+    EXPECT_TRUE(nly::math::float_equal(output.x(), 0));
+    EXPECT_TRUE(nly::math::float_equal(output.y(), 0));
+
+    EXPECT_TRUE(nly::geometry::move(nly::geometry::point2d(10, 20), output, 1, 2));
+    EXPECT_TRUE(nly::math::float_equal(output.x(), 11));
+    EXPECT_TRUE(nly::math::float_equal(output.y(), 22));
+  }
+
+  {
+    nly::geometry::rect2d output;
+    EXPECT_TRUE(nly::geometry::move(nly::geometry::make_rect(10, 20, 100, 110), output, -10, 20));
+    EXPECT_TRUE(nly::geometry::equals(output, nly::geometry::make_rect(0, 40, 90, 130)));
+  }
+}
+
+TEST(Geometry, TransformScale)
+{
+  {
+    nly::geometry::point2i output;
+    EXPECT_TRUE(nly::geometry::scale(nly::geometry::point2i(10, 20), output, 1.5, 2));
+    EXPECT_TRUE(nly::math::float_equal(output.x(), 15));
+    EXPECT_TRUE(nly::math::float_equal(output.y(), 40));
+
+    EXPECT_TRUE(nly::geometry::scale(nly::geometry::point2d(10, 20), output, -1.5, 2));
+    EXPECT_TRUE(nly::math::float_equal(output.x(), -15));
+    EXPECT_TRUE(nly::math::float_equal(output.y(), 40));
+  }
+
+  {
+    nly::geometry::rect2d output;
+    EXPECT_TRUE(nly::geometry::scale(nly::geometry::make_rect(10, 20, 100, 110), output, 2, 3));
+    EXPECT_TRUE(nly::geometry::equals(output, nly::geometry::make_rect(20, 60, 200, 330)));
+
+    EXPECT_TRUE(nly::geometry::scale(nly::geometry::make_rect(10, 20, 100, 110), output, -2, 3));
+    EXPECT_TRUE(nly::geometry::equals(output, nly::geometry::make_rect(-200, 60, -20, 330)));
+  }
+}

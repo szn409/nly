@@ -2,6 +2,11 @@
 #define NLY_MATH
 #include <cmath>
 
+// 拷贝自 msvc 的 corecrt_math_defines.h
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
+
 namespace nly
 {
 
@@ -13,6 +18,13 @@ public:
   static bool float_equal(T t, U u, double allow_diff = 1e-10)
   {
     return std::abs(t - u) <= allow_diff;
+  }
+
+  // 角度转弧度
+  static double to_rad(double angle)
+  {
+    // 0.017453292519943295: M_PI / 180.0
+    return angle * 0.017453292519943295;
   }
 };
 

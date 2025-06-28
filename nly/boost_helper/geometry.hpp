@@ -1,9 +1,9 @@
 ﻿#ifndef NLY_BOOST_HELPER_GEOMETRY
 #define NLY_BOOST_HELPER_GEOMETRY
 
-#define _USE_MATH_DEFINES
-#include <cmath>
+#include <array>
 #include <cassert>
+#include "../math.hpp"
 #include "boost/geometry.hpp"
 
 namespace nly
@@ -270,6 +270,164 @@ public:
   static auto perimeter(const t_geometry& geometry)
   {
     return boost::geometry::perimeter(geometry);
+  }
+
+  /*
+  判断 geometry_small 是否在 geometry_big 内部
+  type:
+    0: 使用非零环绕规则
+    1: 使用射线法(franklin)
+    其他: 使用射线法(crossings_multiply), 但是优化了浮点数精度处理
+  注意:
+    1. 边界点不算内部(但是测试发现: polygon 的某个顶点, type 传 2, 会判断某些顶点在 polygon 内)
+    2. 判断 polygon 是否在另一个 polygon 内, 此函数编译会报错, 此时使用 boost 库内无策略重载版本即可
+  */
+  template<typename t_geometry_small, typename t_geometry_big>
+  static bool within(
+    const t_geometry_small& geometry_small,
+    const t_geometry_big&   geometry_big,
+    int                     type = 0)
+  {
+    if (0 == type)
+    {
+      return boost::geometry::within(
+        geometry_small,
+        geometry_big,
+        boost::geometry::strategy::within::cartesian_winding<>());
+    }
+    else if (1 == type)
+    {
+      return boost::geometry::within(
+        geometry_small,
+        geometry_big,
+        boost::geometry::strategy::within::franklin<
+          boost::geometry::point_type<decltype(geometry_small)>::type>());
+    }
+    else
+    {
+      return boost::geometry::within(
+        geometry_small,
+        geometry_big,
+        boost::geometry::strategy::within::crossings_multiply<
+          boost::geometry::point_type<decltype(geometry_small)>::type>());
+    }
+  }
+
+  /*
+  功能: 获取绕指定点逆时针旋转的矩阵
+  形参:
+    center: 旋转中心
+    angle_rad: 旋转的弧度值
+  过程:
+    1. 先将旋转中心(x, y)平移到原点, 矩阵(T0)为
+       1 0 -x
+       0 1 -y
+       0 0 1
+    2. 绕原点旋转(逆时针), 矩阵(T1)为
+       cosθ -sinθ 0
+       sinθ cosθ  0
+       0    0     1
+    3. 平移回原位置, 矩阵(T2)为
+       1 0 x
+       0 1 y
+       0 0 1
+    4. 记输入点坐标 P 为
+       Xp
+       Yp
+       1
+       则最终坐标为: T2 * T1 * T0 * P
+  输出: [a, b, c, d, tx, ty], 含义:
+    a c tx
+    b d ty
+    0 0 1
+  */
+  static std::array<double, 6> get_rotate_matrix(const point2d& center, double angle_rad)
+  {
+    double cos_a = std::cos(angle_rad);
+    double sin_a = std::sin(angle_rad);
+
+    return std::array<double, 6>{
+      cos_a,
+      sin_a,
+      -sin_a,
+      cos_a,
+      center.x() * (1 - cos_a) + center.y() * sin_a,
+      center.y() * (1 - cos_a) - center.x() * sin_a,
+    };
+  }
+
+  // 用户一般无需直接调用此函数
+  template<typename t_geometry_input, typename t_geometry_output, typename t_strategy>
+  static bool transform(
+    const t_geometry_input& input,
+    t_geometry_output&      output,
+    const t_strategy&       strategy)
+  {
+    return boost::geometry::transform(input, output, strategy);
+  }
+
+  /*
+  1. 将 input 进行变换, 输入的矩阵是 [a, b, c, d, tx, ty]
+  2. 若需要同时进行旋转、缩放、平移, 则调用此函数效率比较高, 缺点是需要自行计算矩阵
+  3. 自行计算矩阵时的过程, 可以参考 get_rotate_matrix
+  */
+  template<typename t_geometry_input, typename t_geometry_output>
+  static bool transform(
+    const t_geometry_input& input,
+    t_geometry_output&      output,
+    double                  a,
+    double                  b,
+    double                  c,
+    double                  d,
+    double                  tx,
+    double                  ty)
+  {
+    return transform(
+      input,
+      output,
+      boost::geometry::strategy::transform::
+        matrix_transformer<double, 2, 2>(a, c, tx, b, d, ty, 0, 0, 1));
+  }
+
+  template<typename t_geometry_input, typename t_geometry_output>
+  static bool move(
+    const t_geometry_input& input,
+    t_geometry_output&      output,
+    double                  xTranslate,
+    double                  yTranslate)
+  {
+    return transform(
+      input,
+      output,
+      boost::geometry::strategy::transform::translate_transformer<double, 2, 2>(
+        xTranslate,
+        yTranslate));
+  }
+
+  // 将 input 以 center 为中心, 逆时针旋转 angle_rad(单位: 弧度)
+  template<typename t_geometry_input, typename t_geometry_output>
+  static bool rotate(
+    const t_geometry_input& input,
+    t_geometry_output&      output,
+    double                  angle_rad,
+    point2d                 center = point2d{ 0.0, 0.0 })
+  {
+    auto [a, b, c, d, tx, ty] = get_rotate_matrix(center, angle_rad);
+    return transform(input, output, a, b, c, d, tx, ty);
+  }
+
+  // 注意: 当缩放系数为负时, 会引入镜像翻转
+  template<typename t_geometry_input, typename t_geometry_output>
+  static bool scale(
+    const t_geometry_input& input,
+    t_geometry_output&      output,
+    double                  x_scale,
+    double                  y_scale)
+  {
+    return transform(
+      input,
+      output,
+      boost::geometry::strategy::transform::scale_transformer<double, 2, 2>(x_scale, y_scale));
   }
 };
 
