@@ -26,6 +26,13 @@ public:
     // 0.017453292519943295: M_PI / 180.0
     return angle * 0.017453292519943295;
   }
+
+  // 弧度转角度
+  static double to_angle(double rad)
+  {
+    // 57.29577951308232: 180.0 / M_PI
+    return rad * 57.29577951308232;
+  }
 };
 
 } // namespace nly

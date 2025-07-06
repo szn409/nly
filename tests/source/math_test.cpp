@@ -27,3 +27,17 @@ TEST(Math, ToRad)
   EXPECT_TRUE(nly::math::float_equal(nly::math::to_rad(360), M_PI * 2));
   EXPECT_TRUE(nly::math::float_equal(nly::math::to_rad(390), 6.806784082777885));
 }
+
+TEST(Math, ToAngle)
+{
+  EXPECT_TRUE(nly::math::float_equal(nly::math::to_angle(0), 0));
+  EXPECT_TRUE(nly::math::float_equal(nly::math::to_angle(0.5235987755982988), 30));
+  EXPECT_TRUE(nly::math::float_equal(nly::math::to_angle(1.5707963267948966), 90));
+  EXPECT_TRUE(nly::math::float_equal(nly::math::to_angle(2.6179938779914944), 150));
+  EXPECT_TRUE(nly::math::float_equal(nly::math::to_angle(M_PI), 180));
+  EXPECT_TRUE(nly::math::float_equal(nly::math::to_angle(3.6651914291880923), 210));
+  EXPECT_TRUE(nly::math::float_equal(nly::math::to_angle(4.71238898038469), 270));
+  EXPECT_TRUE(nly::math::float_equal(nly::math::to_angle(5.410520681182422), 310));
+  EXPECT_TRUE(nly::math::float_equal(nly::math::to_angle(M_PI * 2), 360));
+  EXPECT_TRUE(nly::math::float_equal(nly::math::to_angle(6.806784082777885), 390));
+}
