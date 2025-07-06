@@ -273,6 +273,92 @@ public:
   }
 
   /*
+  计算两个 geometry 的交集
+  注意:
+    1. 最好对 out 进行 clear, 因为不存在交集时, 此函数不会清空 out, 容易造成误解
+    2. 推测: 返回 false 则认为无交集, 否则进一步判断 out 来判断是否有交集
+  输入输出测试(1.87.0)
+    A.
+       1. point_ & segment_
+          输出类型: std::vector<point_>
+          边界和内部: 均包含在计算中
+          返回值: 无论是否有交集, 总是返回 true
+       2. point_ & linestring_: 同 point_ & segment_
+       3. point_ & rect_: 同 point_ & segment_
+       4. point & ring_: 同 point_ & segment_
+       5. point & polygon_: 同 point_ & segment_
+    B.
+       1. segment_ & segment_
+          输出类型: std::vector<point_>
+          边界和内部: 均包含在计算中
+          返回值: 无论是否有交集, 总是返回 true
+       2. segment & linestring_: 不支持
+       3. segment & rect_: 不支持
+       4. segment & ring_: 不支持
+       5. segment & polygon_: 不支持
+    C.
+       1. linestring_ & linestring_
+          输出类型: std::vector<point_>
+          边界和内部: 均包含在计算中
+          返回值: 无论是否有交集, 总是返回 true
+          注意: 有返回重复点的情况, 不符合预期, 具体参考测试用例
+       2. linestring_ & rect_: 不支持
+       3. linestring_ & ring_
+          输出类型: std::vector<point_>
+          边界: 包含在计算中
+          内部: 位于 rect_ 内部的 linestring_ 中的点, 不会包含在返回值中
+          返回值: 无论是否有交集, 总是返回 true
+       4. linestring_ & polygon_: 同 linestring_ & ring_
+    D.
+       1. rect_ & rect_
+          输出类型: rect_
+          边界和内部: 均包含在计算中
+          返回值: 仅在有交集时, 返回 true
+       2. rect_ & ring_
+          输出类型: ring_
+          边界: 包含在计算中
+          内部: 不会包含在返回值中
+          注意: 通道对输出调用下 correct 是一个好主意
+          返回值: 无论是否有交集, 总是返回 true
+       3. rect_ & polygon_: 同 rect_ & ring_
+    E.
+       1. ring_ & ring_
+          输出类型: ring_
+          边界: 包含在计算中
+          内部: 不会包含在返回值中
+          注意: 通道对输出调用下 correct 是一个好主意
+          返回值: 无论是否有交集, 总是返回 true
+       2. ring_ & polygon_: 同 ring_ & ring_
+    F.
+       1. polygon_ & polygon_
+          输出类型: polygon_
+          边界和内部: 均包含在计算中
+          注意: 通道对输出调用下 correct 是一个好主意
+          返回值: 无论是否有交集, 总是返回 true
+  */
+  template<typename t_geometry_0, typename t_geometry_1, typename t_out>
+  static bool intersection(
+    const t_geometry_0& geometry_0,
+    const t_geometry_1& geometry_1,
+    t_out&              out)
+  {
+    return boost::geometry::intersection(geometry_0, geometry_1, out);
+  }
+
+  /*
+  若两个 geometry 不相交, 则返回 true
+  经测试:
+    1. 若两个点重合, 此函数返回 false
+    2. 若点在 rect 的边上, 此函数返回 false
+    3. 若两个 rect 相邻, 此函数返回 false
+  */
+  template<typename t_geometry_0, typename t_geometry_1>
+  static bool disjoint(const t_geometry_0& geometry_0, const t_geometry_1& geometry_1)
+  {
+    return boost::geometry::disjoint(geometry_0, geometry_1);
+  }
+
+  /*
   判断 geometry_small 是否在 geometry_big 内部
   type:
     0: 使用非零环绕规则
