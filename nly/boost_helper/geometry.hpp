@@ -203,6 +203,21 @@ public:
   typedef polygon_<point2i> polygon2i;
 
 public:
+  /*
+  将 input 转换为 output
+  经测试, 支持的组合至少包括:
+    1. segment_ to linestring_
+    2. rect_ to ring_
+    3. rect_ to polygon_
+    4. ring_ to polygon_
+    5. polygon_ to ring_, 仅保留外环, 内环将被忽略
+  */
+  template<typename t_geometry_input, typename t_geometry_output>
+  static void assign(const t_geometry_input& input, t_geometry_output& output)
+  {
+    return boost::geometry::assign(output, input);
+  }
+
   template<typename t_geometry>
   static auto is_valid(const t_geometry& geometry)
   {
@@ -270,6 +285,13 @@ public:
   static auto perimeter(const t_geometry& geometry)
   {
     return boost::geometry::perimeter(geometry);
+  }
+
+  // 求几何体的质心
+  template<typename t_geometry, typename t_point>
+  static void centroid(const t_geometry& geometry, t_point& output)
+  {
+    return boost::geometry::centroid(geometry, output);
   }
 
   /*

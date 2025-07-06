@@ -186,19 +186,62 @@ TEST(Geometry, Polygon)
   EXPECT_TRUE(28 == nly::geometry::perimeter(poly));
 }
 
-template<typename t_point, typename t_geometry_small, typename t_geometry_big>
-void check_winthin(
-  const t_geometry_small& g_small,
-  const t_geometry_big&   g_big,
-  bool                    for_default,
-  bool                    for_winding,
-  bool                    for_franklin,
-  bool                    for_crossings_multiply)
+TEST(Geometry, Assign)
 {
-  EXPECT_TRUE(nly::geometry::within(g_small, g_big) == for_default);
-  EXPECT_TRUE(nly::geometry::within(g_small, g_big, 0) == for_winding);
-  EXPECT_TRUE(nly::geometry::within(g_small, g_big, 1) == for_franklin);
-  EXPECT_TRUE(nly::geometry::within(g_small, g_big, 2) == for_crossings_multiply);
+  // segment_ to linestring_
+  {
+    nly::geometry::linestring2i output;
+    nly::geometry::assign(nly::geometry::make_segment(0, 0, 10, 10), output);
+    EXPECT_TRUE(output.size() == 2);
+    EXPECT_TRUE(nly::geometry::equals(output.at(0), nly::geometry::point2i(0, 0)));
+    EXPECT_TRUE(nly::geometry::equals(output.at(1), nly::geometry::point2i(10, 10)));
+  }
+
+  // rect_ to ring_
+  {
+    nly::geometry::ring2i output;
+    nly::geometry::assign(nly::geometry::make_rect(0, 0, 10, 10), output);
+    EXPECT_TRUE(nly::geometry::equals(output, nly::geometry::make_ring_rect(0, 0, 10, 10)));
+  }
+
+  // rect_ to polygon_
+  {
+    nly::geometry::polygon2i output;
+    nly::geometry::assign(nly::geometry::make_rect(0, 0, 10, 10), output);
+    EXPECT_TRUE(nly::geometry::equals(output, make_polygon_rect(0, 0, 10, 10)));
+  }
+
+  // ring_ to polygon_
+  {
+    nly::geometry::polygon2i output;
+    nly::geometry::assign(nly::geometry::make_ring_rect(0, 0, 10, 10), output);
+    EXPECT_TRUE(nly::geometry::equals(output, make_polygon_rect(0, 0, 10, 10)));
+  }
+
+  // polygon_ to ring_
+  {
+    auto rect = make_polygon_rect(0, 0, 100, 100);
+    rect.inners().resize(1);
+    auto& inner = rect.inners().front();
+    inner.emplace_back(5, 5);
+    inner.emplace_back(5, 95);
+    inner.emplace_back(95, 95);
+    inner.emplace_back(95, 5);
+    nly::geometry::correct(rect);
+
+    nly::geometry::ring2i output;
+    nly::geometry::assign(rect, output);
+    EXPECT_TRUE(nly::geometry::equals(output, nly::geometry::make_ring_rect(0, 0, 100, 100)));
+  }
+}
+
+TEST(Geometry, Centroid)
+{
+  nly::geometry::point2d point;
+  auto circle = nly::geometry::make_circle(nly::geometry::point2d(10.0, 20.0), 30.0);
+  nly::geometry::centroid(circle, point);
+  EXPECT_TRUE(nly::math::float_equal(point.x(), 10.0, 1e-6));
+  EXPECT_TRUE(nly::math::float_equal(point.y(), 20.0, 1e-6));
 }
 
 TEST(Geometry, Intersection)
@@ -801,6 +844,21 @@ TEST(Geometry, Disjoint)
   star.outer().emplace_back(0, 100);
   nly::geometry::correct(star);
   EXPECT_TRUE(!nly::geometry::disjoint(point, star));
+}
+
+template<typename t_point, typename t_geometry_small, typename t_geometry_big>
+void check_winthin(
+  const t_geometry_small& g_small,
+  const t_geometry_big&   g_big,
+  bool                    for_default,
+  bool                    for_winding,
+  bool                    for_franklin,
+  bool                    for_crossings_multiply)
+{
+  EXPECT_TRUE(nly::geometry::within(g_small, g_big) == for_default);
+  EXPECT_TRUE(nly::geometry::within(g_small, g_big, 0) == for_winding);
+  EXPECT_TRUE(nly::geometry::within(g_small, g_big, 1) == for_franklin);
+  EXPECT_TRUE(nly::geometry::within(g_small, g_big, 2) == for_crossings_multiply);
 }
 
 TEST(Geometry, Within)
