@@ -1,4 +1,4 @@
-#include "gtest/gtest.h"
+﻿#include "gtest/gtest.h"
 #include "nly/boost_helper/geometry.hpp"
 #include "nly/math.hpp"
 
@@ -957,6 +957,105 @@ TEST(Geometry, Within)
     auto rect_1 = nly::geometry::make_rect(-100, -100, 100, 100);
     check_winthin<nly::geometry::point2i>(rect_0, rect_1, true, true, true, true);
   }
+}
+
+TEST(Geometry, CoveredBy)
+{
+  {
+    nly::geometry::polygon2i star;
+    star.outer().emplace_back(0, 100);
+    star.outer().emplace_back(-58, -81);
+    star.outer().emplace_back(95, 31);
+    star.outer().emplace_back(-95, 31);
+    star.outer().emplace_back(58, -81);
+    star.outer().emplace_back(0, 100);
+    nly::geometry::correct(star);
+
+    EXPECT_TRUE(nly::geometry::covered_by(nly::geometry::point2i(0, 0), star));
+    for (auto point : star.outer())
+    {
+      EXPECT_TRUE(nly::geometry::covered_by(point, star));
+    }
+
+    EXPECT_TRUE(!nly::geometry::covered_by(nly::geometry::point2i(1000, 1000), star));
+  }
+
+  {
+    auto rect = nly::geometry::make_rect(0, 0, 100, 100);
+    EXPECT_TRUE(nly::geometry::covered_by(nly::geometry::point2i(0, 0), rect));
+    EXPECT_TRUE(nly::geometry::covered_by(nly::geometry::point2i(0, 100), rect));
+    EXPECT_TRUE(nly::geometry::covered_by(nly::geometry::point2i(100, 100), rect));
+    EXPECT_TRUE(nly::geometry::covered_by(nly::geometry::point2i(100, 0), rect));
+    EXPECT_TRUE(nly::geometry::covered_by(nly::geometry::point2i(0, 50), rect));
+    EXPECT_TRUE(nly::geometry::covered_by(nly::geometry::point2i(100, 50), rect));
+    EXPECT_TRUE(!nly::geometry::covered_by(nly::geometry::point2i(1000, 1000), rect));
+  }
+}
+
+TEST(Geometry, RecentlyPoints)
+{
+  {
+    nly::geometry::ring2i ring;
+    ring.emplace_back(0, 0);
+    ring.emplace_back(10, 10);
+    ring.emplace_back(20, 0);
+    nly::geometry::correct(ring);
+
+    nly::geometry::segment2i line;
+    nly::geometry::closest_points(ring, nly::geometry::make_ring_rect(30, 30, 50, 50), line);
+    EXPECT_TRUE(nly::geometry::equals(line.first, nly::geometry::point2i(10, 10)));
+    EXPECT_TRUE(nly::geometry::equals(line.second, nly::geometry::point2i(30, 30)));
+  }
+
+  {
+    nly::geometry::segment2i line;
+    nly::geometry::closest_points(
+      nly::geometry::make_ring_rect(0, 0, 50, 50),
+      nly::geometry::make_ring_rect(0, 0, 50, 50),
+      line);
+    EXPECT_TRUE(nly::geometry::equals(line.first, nly::geometry::point2i(0, 50)));
+    EXPECT_TRUE(nly::geometry::equals(line.second, nly::geometry::point2i(0, 50)));
+  }
+
+  {
+    nly::geometry::segment2i line;
+    nly::geometry::closest_points(
+      nly::geometry::make_ring_rect(-100, -100, 50, 50),
+      nly::geometry::make_ring_rect(40, 40, 80, 80),
+      line);
+    EXPECT_TRUE(nly::geometry::equals(line.first, nly::geometry::point2i(40, 50)));
+    EXPECT_TRUE(nly::geometry::equals(line.second, nly::geometry::point2i(40, 50)));
+  }
+
+  {
+    nly::geometry::segment2i line;
+    nly::geometry::closest_points(
+      nly::geometry::make_ring_rect(0, 0, 50, 50),
+      nly::geometry::make_ring_rect(0, 0, 80, 80),
+      line);
+    EXPECT_TRUE(nly::geometry::equals(line.first, nly::geometry::point2i(0, 50)));
+    EXPECT_TRUE(nly::geometry::equals(line.second, nly::geometry::point2i(0, 50)));
+  }
+}
+
+TEST(Geometry, ConvexHull)
+{
+  nly::geometry::ring2i ring;
+  ring.emplace_back(0, 0);
+  ring.emplace_back(50, 20);
+  ring.emplace_back(80, 80);
+  ring.emplace_back(100, 80);
+  ring.emplace_back(100, 0);
+  nly::geometry::correct(ring);
+
+  nly::geometry::ring2i output;
+  nly::geometry::convex_hull(ring, output);
+  EXPECT_TRUE(output.size() == 5);
+  EXPECT_TRUE(nly::geometry::equals(output.at(0), nly::geometry::point2i(0, 0)));
+  EXPECT_TRUE(nly::geometry::equals(output.at(1), nly::geometry::point2i(80, 80)));
+  EXPECT_TRUE(nly::geometry::equals(output.at(2), nly::geometry::point2i(100, 80)));
+  EXPECT_TRUE(nly::geometry::equals(output.at(3), nly::geometry::point2i(100, 0)));
+  EXPECT_TRUE(nly::geometry::equals(output.at(4), nly::geometry::point2i(0, 0)));
 }
 
 TEST(Geometry, TransformRotate)

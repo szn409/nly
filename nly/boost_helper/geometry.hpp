@@ -368,19 +368,6 @@ public:
   }
 
   /*
-  若两个 geometry 不相交, 则返回 true
-  经测试:
-    1. 若两个点重合, 此函数返回 false
-    2. 若点在 rect 的边上, 此函数返回 false
-    3. 若两个 rect 相邻, 此函数返回 false
-  */
-  template<typename t_geometry_0, typename t_geometry_1>
-  static bool disjoint(const t_geometry_0& geometry_0, const t_geometry_1& geometry_1)
-  {
-    return boost::geometry::disjoint(geometry_0, geometry_1);
-  }
-
-  /*
   判断 geometry_small 是否在 geometry_big 内部
   type:
     0: 使用非零环绕规则
@@ -419,6 +406,51 @@ public:
         boost::geometry::strategy::within::crossings_multiply<
           boost::geometry::point_type<decltype(geometry_small)>::type>());
     }
+  }
+
+  /*
+  判断 geometry_small 是否在 geometry_big 的内部(含边界)
+  此函数和 within 的不同之处:
+    1. within 支持不同的判断策略, 比如支持使用非零缠绕
+    2. within 判断时不含边界, 但此函数支持 geometry_small 在 geometry_big 边界上
+  */
+  template<typename t_geometry_small, typename t_geometry_big>
+  static bool covered_by(const t_geometry_small& geometry_small, const t_geometry_big& geometry_big)
+  {
+    return boost::geometry::covered_by(geometry_small, geometry_big);
+  }
+
+  /*
+  若两个 geometry 不相交, 则返回 true
+  经测试, 边界纳入计算, 即:
+    1. 若两个点重合, 此函数返回 false
+    2. 若点在 rect 的边上, 此函数返回 false
+    3. 若两个 rect 相邻, 此函数返回 false
+  */
+  template<typename t_geometry_0, typename t_geometry_1>
+  static bool disjoint(const t_geometry_0& geometry_0, const t_geometry_1& geometry_1)
+  {
+    return boost::geometry::disjoint(geometry_0, geometry_1);
+  }
+
+  /*
+  计算两个几何体之间的最近点
+  经测试: 若两个几何体存在重合, 则返回的线段的首末点是相等的
+  */
+  template<typename t_geometry_0, typename t_geometry_1, typename t_segment>
+  static void closest_points(
+    const t_geometry_0& geometry_0,
+    const t_geometry_1& geometry_1,
+    t_segment&          output)
+  {
+    boost::geometry::closest_points(geometry_0, geometry_1, output);
+  }
+
+  // 计算 input 的凸包
+  template<typename t_geometry, typename t_output>
+  static void convex_hull(const t_geometry& input, t_output& output)
+  {
+    boost::geometry::convex_hull(input, output);
   }
 
   /*
