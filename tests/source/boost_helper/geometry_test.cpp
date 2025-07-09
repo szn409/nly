@@ -69,12 +69,32 @@ TEST(Geometry, Rect)
 
 TEST(Geometry, LineString)
 {
-  nly::geometry::linestring2i line;
-  line.emplace_back(nly::geometry::point2i(0, 0));
-  line.emplace_back(nly::geometry::point2i(1, 1));
-  line.emplace_back(nly::geometry::point2i(2, 0));
-  EXPECT_TRUE(nly::geometry::is_valid(line));
-  EXPECT_TRUE(nly::math::float_equal(nly::geometry::length(line), sqrt(2) + sqrt(2)));
+  {
+    nly::geometry::linestring2i line;
+    line.emplace_back(nly::geometry::point2i(0, 0));
+    line.emplace_back(nly::geometry::point2i(1, 1));
+    line.emplace_back(nly::geometry::point2i(2, 0));
+    EXPECT_TRUE(nly::geometry::is_valid(line));
+    EXPECT_TRUE(nly::math::float_equal(nly::geometry::length(line), sqrt(2) + sqrt(2)));
+  }
+
+  {
+    auto line = nly::geometry::make_linestring(-100, -200, 100, 200);
+    EXPECT_TRUE(line.size() == 2);
+    EXPECT_TRUE(nly::geometry::equals(line.at(0), nly::geometry::point2i(-100, -200)));
+    EXPECT_TRUE(nly::geometry::equals(line.at(1), nly::geometry::point2i(100, 200)));
+  }
+
+  {
+    auto line = nly::geometry::make_linestring(
+      std::vector<nly::geometry::point2i>{ nly::geometry::point2i(0, 0),
+                                           nly::geometry::point2i(1, 2),
+                                           nly::geometry::point2i(3, 4) });
+    EXPECT_TRUE(line.size() == 3);
+    EXPECT_TRUE(nly::geometry::equals(line.at(0), nly::geometry::point2i(0, 0)));
+    EXPECT_TRUE(nly::geometry::equals(line.at(1), nly::geometry::point2i(1, 2)));
+    EXPECT_TRUE(nly::geometry::equals(line.at(2), nly::geometry::point2i(3, 4)));
+  }
 }
 
 TEST(Geometry, Ring)
@@ -389,7 +409,6 @@ TEST(Geometry, Intersection)
     inner.emplace_back(95, 95);
     inner.emplace_back(95, 5);
     nly::geometry::correct(rect);
-    auto polygonArea = nly::geometry::area(rect);
     EXPECT_TRUE(nly::geometry::area(rect) == 100 * 100 - 90 * 90);
     EXPECT_TRUE(nly::geometry::intersection(point, rect, output) && output.empty());
   }
@@ -989,6 +1008,101 @@ TEST(Geometry, CoveredBy)
     EXPECT_TRUE(nly::geometry::covered_by(nly::geometry::point2i(0, 50), rect));
     EXPECT_TRUE(nly::geometry::covered_by(nly::geometry::point2i(100, 50), rect));
     EXPECT_TRUE(!nly::geometry::covered_by(nly::geometry::point2i(1000, 1000), rect));
+  }
+
+  {
+    auto line = nly::geometry::make_segment(0, 0, 100, 100);
+    EXPECT_TRUE(nly::geometry::covered_by(nly::geometry::point2i(0, 0), line));
+    EXPECT_TRUE(nly::geometry::covered_by(nly::geometry::point2i(100, 100), line));
+    EXPECT_TRUE(nly::geometry::covered_by(nly::geometry::point2i(50, 50), line));
+    EXPECT_TRUE(!nly::geometry::covered_by(nly::geometry::point2i(-50, -50), line));
+  }
+}
+
+TEST(Geometry, Crosses)
+{
+  // linestring_ & linestring_
+  {
+    auto line = nly::geometry::make_linestring(0, 0, 100, 0);
+    EXPECT_TRUE(!nly::geometry::crosses(line, line));
+    EXPECT_TRUE(!nly::geometry::crosses(line, nly::geometry::make_linestring(50, 50, 50, 40)));
+    EXPECT_TRUE(!nly::geometry::crosses(line, nly::geometry::make_linestring(50, 50, 50, 0)));
+    EXPECT_TRUE(nly::geometry::crosses(line, nly::geometry::make_linestring(50, 50, 50, -10)));
+  }
+
+  // linestring_ & ring_
+  {
+    auto                        rect = nly::geometry::make_ring_rect(0, 0, 100, 100);
+    nly::geometry::linestring2i line;
+    line.emplace_back(-10, -10);
+    line.emplace_back(-100, -100);
+    EXPECT_TRUE(!nly::geometry::crosses(rect, line));
+
+    line.clear();
+    line.emplace_back(0, 0);
+    line.emplace_back(10, 10);
+    EXPECT_TRUE(!nly::geometry::crosses(rect, line));
+
+    line.pop_back();
+    line.emplace_back(100, 100);
+    EXPECT_TRUE(!nly::geometry::crosses(rect, line));
+
+    line.pop_back();
+    line.emplace_back(1000, 1000);
+    EXPECT_TRUE(nly::geometry::crosses(rect, line));
+
+    line.clear();
+    line.emplace_back(10, 10);
+    line.emplace_back(1000, 1000);
+    EXPECT_TRUE(nly::geometry::crosses(rect, line));
+
+    line.clear();
+    line.emplace_back(-1000, -1000);
+    line.emplace_back(1000, 1000);
+    EXPECT_TRUE(nly::geometry::crosses(rect, line));
+  }
+
+  // linestring_ & polygon_
+  {
+    auto                        rect = make_polygon_rect(0, 0, 100, 100);
+    nly::geometry::linestring2i line;
+    line.emplace_back(-10, -10);
+    line.emplace_back(-100, -100);
+    EXPECT_TRUE(!nly::geometry::crosses(rect, line));
+
+    line.clear();
+    line.emplace_back(0, 0);
+    line.emplace_back(10, 10);
+    EXPECT_TRUE(!nly::geometry::crosses(rect, line));
+
+    line.pop_back();
+    line.emplace_back(100, 100);
+    EXPECT_TRUE(!nly::geometry::crosses(rect, line));
+
+    line.pop_back();
+    line.emplace_back(1000, 1000);
+    EXPECT_TRUE(nly::geometry::crosses(rect, line));
+
+    line.clear();
+    line.emplace_back(10, 10);
+    line.emplace_back(1000, 1000);
+    EXPECT_TRUE(nly::geometry::crosses(rect, line));
+
+    line.clear();
+    line.emplace_back(-1000, -1000);
+    line.emplace_back(1000, 1000);
+    EXPECT_TRUE(nly::geometry::crosses(rect, line));
+  }
+
+  // 结果不符合预期的 ring_ & ring_
+  // 结果不符合预期的 polygon_ & polygon_
+  {
+    EXPECT_TRUE(!nly::geometry::crosses(
+      nly::geometry::make_ring_rect(0, 0, 10, 10),
+      nly::geometry::make_ring_rect(5, 5, 20, 20)));
+
+    EXPECT_TRUE(
+      !nly::geometry::crosses(make_polygon_rect(0, 0, 10, 10), make_polygon_rect(5, 5, 20, 20)));
   }
 }
 

@@ -81,6 +81,26 @@ public:
   typedef linestring_<point2f> linestring2f;
   typedef linestring_<point2i> linestring2i;
 
+  template<typename T>
+  static linestring_<point_xy_<T>> make_linestring(T x0, T y0, T x1, T y1)
+  {
+    linestring_<point_xy_<T>> output;
+    output.emplace_back(x0, y0);
+    output.emplace_back(x1, y1);
+    return output;
+  }
+
+  template<typename T>
+  static linestring_<point_xy_<T>> make_linestring(const std::vector<point_xy_<T>>& points)
+  {
+    linestring_<point_xy_<T>> output;
+    for (const auto& item : points)
+    {
+      output.emplace_back(item);
+    }
+    return output;
+  }
+
 public:
   /*
   定义了一个环
@@ -418,6 +438,21 @@ public:
   static bool covered_by(const t_geometry_small& geometry_small, const t_geometry_big& geometry_big)
   {
     return boost::geometry::covered_by(geometry_small, geometry_big);
+  }
+
+  /*
+  若两个几何体相交, 则返回 true
+  注意: 若一个几何体在另一个几何体内部(含边界), 则不认为相交
+  支持的组合包括:
+    1. linestring_ & linestring_
+    2. linestring_ & ring_
+    3. linestring_ & polygon_
+  注意: 务必只使用上述组合, 其他比如 ring_ & ring_ 能通过编译, 但是结果不符合预期(官网明确不支持)
+  */
+  template<typename t_geometry_0, typename t_geometry_1>
+  static bool crosses(const t_geometry_0& geometry_0, const t_geometry_1& geometry_1)
+  {
+    return boost::geometry::crosses(geometry_0, geometry_1);
   }
 
   /*
