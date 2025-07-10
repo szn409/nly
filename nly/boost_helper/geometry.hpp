@@ -33,6 +33,13 @@ public:
     return segment_<point_xy_<T>>(point_xy_<T>(x0, y0), point_xy_<T>(x1, y1));
   }
 
+  // 返回线段长度
+  template<typename T>
+  static double get_segment_len(const segment_<point_xy_<T>>& segment)
+  {
+    return geometry::distance(segment.first, segment.second);
+  }
+
 public:
   // 总是与轴平行的矩形
   template<typename T>
@@ -481,11 +488,40 @@ public:
     boost::geometry::closest_points(geometry_0, geometry_1, output);
   }
 
+  /*
+  返回两个几何体的距离
+  经测试: 若两个几何体存在重合, 则返回 0
+  */
+  template<typename t_geometry_0, typename t_geometry_1>
+  static auto distance(const t_geometry_0& geometry_0, const t_geometry_1& geometry_1)
+  {
+    return boost::geometry::distance(geometry_0, geometry_1);
+  }
+
   // 计算 input 的凸包
   template<typename t_geometry, typename t_output>
   static void convex_hull(const t_geometry& input, t_output& output)
   {
     boost::geometry::convex_hull(input, output);
+  }
+
+  // 获取几何体的最小外接矩形
+  template<typename t_geometry, typename t_box>
+  static void envelope(const t_geometry& input, t_box& output)
+  {
+    boost::geometry::envelope(input, output);
+  }
+
+  /*
+  扩展 input, 使其能包含(含边界) geometry
+  目前(1.87.0)仅支持:
+    1. rect_ & point_
+    2. rect_ & rect_
+  */
+  template<typename t_box, typename t_geometry>
+  static void expand(t_box& input, const t_geometry& geometry)
+  {
+    boost::geometry::envelope(input, geometry);
   }
 
   /*

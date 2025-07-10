@@ -1106,7 +1106,7 @@ TEST(Geometry, Crosses)
   }
 }
 
-TEST(Geometry, RecentlyPoints)
+TEST(Geometry, ClosestPointsAndDistance)
 {
   {
     nly::geometry::ring2i ring;
@@ -1119,6 +1119,9 @@ TEST(Geometry, RecentlyPoints)
     nly::geometry::closest_points(ring, nly::geometry::make_ring_rect(30, 30, 50, 50), line);
     EXPECT_TRUE(nly::geometry::equals(line.first, nly::geometry::point2i(10, 10)));
     EXPECT_TRUE(nly::geometry::equals(line.second, nly::geometry::point2i(30, 30)));
+
+    auto distance = nly::geometry::distance(ring, nly::geometry::make_ring_rect(30, 30, 50, 50));
+    EXPECT_TRUE(nly::math::float_equal(distance, nly::geometry::get_segment_len(line)));
   }
 
   {
@@ -1129,6 +1132,11 @@ TEST(Geometry, RecentlyPoints)
       line);
     EXPECT_TRUE(nly::geometry::equals(line.first, nly::geometry::point2i(0, 50)));
     EXPECT_TRUE(nly::geometry::equals(line.second, nly::geometry::point2i(0, 50)));
+
+    auto distance = nly::geometry::distance(
+      nly::geometry::make_ring_rect(0, 0, 50, 50),
+      nly::geometry::make_ring_rect(0, 0, 50, 50));
+    EXPECT_TRUE(nly::math::float_equal(distance, nly::geometry::get_segment_len(line)));
   }
 
   {
@@ -1139,6 +1147,11 @@ TEST(Geometry, RecentlyPoints)
       line);
     EXPECT_TRUE(nly::geometry::equals(line.first, nly::geometry::point2i(40, 50)));
     EXPECT_TRUE(nly::geometry::equals(line.second, nly::geometry::point2i(40, 50)));
+
+    auto distance = nly::geometry::distance(
+      nly::geometry::make_ring_rect(-100, -100, 50, 50),
+      nly::geometry::make_ring_rect(40, 40, 80, 80));
+    EXPECT_TRUE(nly::math::float_equal(distance, nly::geometry::get_segment_len(line)));
   }
 
   {
@@ -1149,6 +1162,11 @@ TEST(Geometry, RecentlyPoints)
       line);
     EXPECT_TRUE(nly::geometry::equals(line.first, nly::geometry::point2i(0, 50)));
     EXPECT_TRUE(nly::geometry::equals(line.second, nly::geometry::point2i(0, 50)));
+
+    auto distance = nly::geometry::distance(
+      nly::geometry::make_ring_rect(0, 0, 50, 50),
+      nly::geometry::make_ring_rect(0, 0, 80, 80));
+    EXPECT_TRUE(nly::math::float_equal(distance, nly::geometry::get_segment_len(line)));
   }
 }
 
@@ -1170,6 +1188,48 @@ TEST(Geometry, ConvexHull)
   EXPECT_TRUE(nly::geometry::equals(output.at(2), nly::geometry::point2i(100, 80)));
   EXPECT_TRUE(nly::geometry::equals(output.at(3), nly::geometry::point2i(100, 0)));
   EXPECT_TRUE(nly::geometry::equals(output.at(4), nly::geometry::point2i(0, 0)));
+}
+
+TEST(Geometry, Envelope)
+{
+  {
+    nly::geometry::rect2i rect;
+    nly::geometry::envelope(nly::geometry::make_rect(0, 0, 10, 10), rect);
+    EXPECT_TRUE(nly::geometry::equals(rect, nly::geometry::make_rect(0, 0, 10, 10)));
+  }
+
+  {
+    nly::geometry::ring2i ring;
+    ring.emplace_back(0, 0);
+    ring.emplace_back(10, 10);
+    ring.emplace_back(20, 0);
+    nly::geometry::correct(ring);
+
+    nly::geometry::rect2i rect;
+    nly::geometry::envelope(ring, rect);
+    EXPECT_TRUE(nly::geometry::equals(rect, nly::geometry::make_rect(0, 0, 20, 10)));
+  }
+}
+
+TEST(Geometry, Expand)
+{
+  {
+    auto rect = nly::geometry::make_rect(-10, -10, 10, 10);
+    boost::geometry::expand(rect, nly::geometry::point2i(20, 0));
+    EXPECT_TRUE(nly::geometry::equals(rect, nly::geometry::make_rect(-10, -10, 20, 10)));
+  }
+
+  {
+    auto rect = nly::geometry::make_rect(0, 0, 10, 10);
+    boost::geometry::expand(rect, nly::geometry::make_rect(5, 5, 20, 20));
+    EXPECT_TRUE(nly::geometry::equals(rect, nly::geometry::make_rect(0, 0, 20, 20)));
+  }
+
+  {
+    auto rect = nly::geometry::make_rect(0, 0, 10, 10);
+    boost::geometry::expand(rect, nly::geometry::make_rect(0, 0, 5, 5));
+    EXPECT_TRUE(nly::geometry::equals(rect, nly::geometry::make_rect(0, 0, 10, 10)));
+  }
 }
 
 TEST(Geometry, TransformRotate)
