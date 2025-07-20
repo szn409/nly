@@ -251,6 +251,12 @@ public:
     return boost::geometry::is_valid(geometry);
   }
 
+  template<typename t_geometry>
+  static auto is_empty(const t_geometry& geometry)
+  {
+    return boost::geometry::is_empty(geometry);
+  }
+
   /*
   修正输入的几何体, 包括:
     1. 方向与预期不符的环(包括 polygon_ 的内外环)
@@ -449,17 +455,51 @@ public:
 
   /*
   若两个几何体相交, 则返回 true
-  注意: 若一个几何体在另一个几何体内部(含边界), 则不认为相交
   支持的组合包括:
     1. linestring_ & linestring_
     2. linestring_ & ring_
     3. linestring_ & polygon_
-  注意: 务必只使用上述组合, 其他比如 ring_ & ring_ 能通过编译, 但是结果不符合预期(官网明确不支持)
+  注意:
+    1. 务必只使用上述组合, 其他比如 ring_ & ring_ 能通过编译, 但是结果不符合预期(官网明确不支持)
+    2. 此函数是严格意义的相交, 表达的是: 是否真正穿过内部的相交
+       A. 比如: 若一个几何体在另一个几何体内部(含边界), 则不认为相交
+       B. 比如: 若一个几何体与另一个几何体仅表面接触, 则不认为相交(此时认为是 touch)
   */
   template<typename t_geometry_0, typename t_geometry_1>
   static bool crosses(const t_geometry_0& geometry_0, const t_geometry_1& geometry_1)
   {
     return boost::geometry::crosses(geometry_0, geometry_1);
+  }
+
+  /*
+  判断两个几何体是否至少有一个交点
+  不同于 crosses, 只要两个几何体有任意的接触, 就返回 true, 比如
+    1. 一个点位于另一个几何体的边界
+    2. 一个点位于另一个几何体内部
+  */
+  template<typename t_geometry_0, typename t_geometry_1>
+  static bool intersects(const t_geometry_0& geometry_0, const t_geometry_1& geometry_1)
+  {
+    return boost::geometry::intersects(geometry_0, geometry_1);
+  }
+
+  // 检查两个几何体是否至少有一个接触点(相切但不相交)
+  template<typename t_geometry_0, typename t_geometry_1>
+  static bool touches(const t_geometry_0& geometry_0, const t_geometry_1& geometry_1)
+  {
+    return boost::geometry::touches(geometry_0, geometry_1);
+  }
+
+  /*
+  检查一个几何体是否自相交
+  比如:
+    1. linestring_ 有任意线段交叉(注意: 首尾相接这种返回 false)
+    2. polygon 有内环自相交
+  */
+  template<typename t_geometry>
+  static bool intersects(const t_geometry& geometry)
+  {
+    return boost::geometry::intersects(geometry);
   }
 
   /*
@@ -639,6 +679,37 @@ public:
       input,
       output,
       boost::geometry::strategy::transform::scale_transformer<double, 2, 2>(x_scale, y_scale));
+  }
+
+  /*
+  计算两个向量的叉积
+  对于二维向量 a = (x1, y1), b = (x2, y2), 叉积定义为 x1 * y2 - x2 * y1
+    1. 二维向量的叉积是两个向量组成的平行四边形的面积
+    2. a * b 结果为正: b 在 a 的逆时针旋转方向
+    3. a * b 结果为负: b 在 a 的顺时针旋转方向
+    4. a * b 结果为零: a 与 b 平行
+  */
+  template<typename T, typename U>
+  static auto cross_product(const point_xy_<T>& p0, const point_xy_<U>& p1)
+  {
+    return boost::geometry::cross_product(p0, p1);
+  }
+
+  /*
+  计算两个向量的点积
+  对于二维向量 a = (x1, y1), b = (x2, y2), 点积定义为 x1 * x2 + y1 * y2
+  几何意义:
+    1. a ⋅ b = |a| * |b| * cosθ, 其中 θ 是两个向量的夹角
+    2. 若 b 是单位向量, 则 a ⋅ b 表示了 a 在 b 方向上的投影长度
+    3. 结果的正负与角度的关系
+       A. 结果为正, θ 为锐角
+       B. 结果为零, 向量垂直
+       C. 结果为负, θ 为钝角
+  */
+  template<typename T, typename U>
+  static auto dot_product(const point_xy_<T>& p0, const point_xy_<U>& p1)
+  {
+    return boost::geometry::dot_product(p0, p1);
   }
 };
 
