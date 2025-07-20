@@ -43,5 +43,5 @@ target_link_libraries(nly_test PUBLIC
  )
 
 if(MSVC)
-  target_compile_options(nly_test PUBLIC "/W4")
+  target_compile_options(nly_test PUBLIC "/W4" "/bigobj")
 endif()
