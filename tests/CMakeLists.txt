@@ -19,6 +19,22 @@ find_package(fmt REQUIRED)
 find_package(cppitertools REQUIRED)
 
 add_executable(nly_test 
+  "${CMAKE_CURRENT_SOURCE_DIR}/source/stl_helper/time_count_test.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/source/stl_helper/random_test.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/source/stl_helper/algorithm_test.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/source/boost_helper/asio/streambuf_test.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/source/boost_helper/date_time_test.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/source/boost_helper/base64_test.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/source/boost_helper/encoding_test.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/source/boost_helper/string_test.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/source/boost_helper/serialization_test.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/source/boost_helper/geometry_test.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/source/utility_test.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/source/bit_test.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/source/memory_stream_test.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/source/thread_pool_test.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/source/math_test.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/source/pool_test.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/source/cppitertools_test.cpp"
   )
 
