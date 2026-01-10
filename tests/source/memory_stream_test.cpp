@@ -160,6 +160,6 @@ TEST(MemoryStream, Left)
   EXPECT_EQ(output[1], 0x05);
   EXPECT_EQ(output[2], 0x06);
 
-  EXPECT_EQ(ms.slide(-1), 3);
-  EXPECT_EQ(ms.slide(-1), 0);
+  EXPECT_EQ(ms.slide(static_cast<size_t>(-1)), 3);
+  EXPECT_EQ(ms.slide(static_cast<size_t>(-1)), 0);
 }

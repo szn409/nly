@@ -22,12 +22,6 @@ public:
     ++*m_value;
   }
 
-  hello(hello&& h)
-  {
-    m_value = h.m_value;
-    ++*m_value;
-  }
-
 public:
   operator bool() const
   {

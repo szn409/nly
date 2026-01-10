@@ -1,5 +1,5 @@
 ﻿#include "gtest/gtest.h"
-#include "nly/boost_helper/asio/streambuf.hpp"
+#include "nly/boost_helper/asio_helper/streambuf.hpp"
 
 TEST(Streambuf, All)
 {

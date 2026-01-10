@@ -50,7 +50,7 @@ public:
 
 public:
   // 对于无效输入, 会抛出 std::out_of_range 异常
-  static date make_date(int year, int month, int day)
+  static date make_date(unsigned short year, unsigned short month, unsigned short day)
   {
     return date(year, month, day);
   }
@@ -158,13 +158,13 @@ public:
   }
 
   static ptime make_ptime(
-    int       year,
-    int       month,
-    int       day,
-    long long hour,
-    long long minute,
-    long long second,
-    long long fractional_second = 0)
+    unsigned short year,
+    unsigned short month,
+    unsigned short day,
+    long long      hour,
+    long long      minute,
+    long long      second,
+    long long      fractional_second = 0)
   {
     auto date = make_date(year, month, day);
     auto time = make_time_duration(hour, minute, second, fractional_second);
