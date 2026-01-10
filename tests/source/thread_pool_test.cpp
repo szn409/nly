@@ -1,10 +1,10 @@
 ﻿#include "gtest/gtest.h"
-#include "nly/BS_thread_pool.hpp"
 #include "nly/stl_helper/time.hpp"
+#include "nly/thread_pool.hpp"
 
 TEST(ThreadPool, SubmitTask)
 {
-  BS::thread_pool pool(2);
+  nly::thread_pool pool(2);
 
   auto task = [](int a, int b)
   {
@@ -21,37 +21,9 @@ TEST(ThreadPool, SubmitTask)
   EXPECT_TRUE(used_time >= 0.4 && used_time <= 0.7);
 }
 
-TEST(ThreadPool, SubmitLoop)
-{
-  int             input[3] = { 1, 2, 3 };
-  BS::thread_pool pool(3);
-
-  auto task = [&input](int index)
-  {
-    std::this_thread::sleep_for(std::chrono::milliseconds(500));
-    if (index % 2)
-    {
-      input[index] += 100;
-    }
-    else
-    {
-      input[index] += 1;
-    }
-  };
-
-  auto start_time = nly::time_count::now();
-  auto fu = pool.submit_loop(0, 3, task);
-  fu.get();
-  auto used_time = nly::time_count::time_diff(start_time);
-  EXPECT_EQ(input[0], 2);
-  EXPECT_EQ(input[1], 102);
-  EXPECT_EQ(input[2], 4);
-  EXPECT_TRUE(used_time >= 0.4 && used_time <= 0.7);
-}
-
 TEST(ThreadPool, DetachTaskAndWait)
 {
-  BS::thread_pool pool(2);
+  nly::thread_pool pool(2);
 
   auto task = [](int& a)
   {
@@ -82,9 +54,29 @@ TEST(ThreadPool, DetachTaskAndWait)
   EXPECT_EQ(tmp, 101);
 }
 
+TEST(ThreadPool, DeadLock)
+{
+  nly::thread_pool pool(2);
+
+  auto task = [&pool]()
+  {
+    try
+    {
+      pool.wait();
+      return true;
+    }
+    catch (const std::exception&)
+    {
+      return false;
+    }
+  };
+  std::future<bool> fu = pool.submit_task(task);
+  EXPECT_TRUE(!fu.get());
+}
+
 TEST(ThreadPool, DetachTaskAndNotWait)
 {
-  BS::thread_pool<>* pool = new BS::thread_pool(2);
+  nly::thread_pool* pool = new nly::thread_pool(2);
 
   auto task = [](int& a)
   {
@@ -96,12 +88,100 @@ TEST(ThreadPool, DetachTaskAndNotWait)
 
   auto start_time = nly::time_count::now();
   pool->detach_task(std::bind(task, std::ref(input[0])));
-  pool->detach_task(std::bind(task, input[1]));
+  pool->detach_task(std::bind(task, std::ref(input[1])));
   delete pool;
   auto used_time = nly::time_count::time_diff(start_time);
   EXPECT_TRUE(used_time >= 0.4 && used_time <= 0.7);
   EXPECT_EQ(input[0], 2);
-  EXPECT_EQ(input[1], 2);
+  EXPECT_EQ(input[1], 3);
+}
+
+TEST(ThreadPool, Purge)
+{
+  nly::thread_pool pool(1);
+
+  auto task = []() { std::this_thread::sleep_for(std::chrono::milliseconds(500)); };
+
+  auto start_time = nly::time_count::now();
+  auto fu = pool.submit_task(task);
+  for (int i = 0; i < 3; ++i)
+  {
+    pool.detach_task(task);
+  }
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  pool.purge();
+  fu.wait();
+  pool.wait();
+  auto used_time = nly::time_count::time_diff(start_time);
+  EXPECT_TRUE(used_time >= 0.4 && used_time <= 0.7);
+}
+
+TEST(ThreadPool, Get)
+{
+  nly::thread_pool pool(3);
+  EXPECT_TRUE(pool.get_thread_count() == 3);
+
+  auto task = []() { std::this_thread::sleep_for(std::chrono::milliseconds(500)); };
+  for (int i = 0; i < 5; ++i)
+  {
+    pool.detach_task(task);
+  }
+
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  EXPECT_TRUE(pool.get_tasks_running() == 3);
+  EXPECT_TRUE(pool.get_tasks_queued() == 2);
+  EXPECT_TRUE(pool.get_tasks_total() == 5);
+}
+
+TEST(ThreadPool, ThreadSafeTest)
+{
+  nly::thread_pool pool(3);
+  std::atomic_int  value;
+  const int        count = 500000;
+
+  auto task = [&pool, &value, count]()
+  {
+    for (int i = 0; i < count; ++i)
+    {
+      pool.detach_task([&value]() { ++value; });
+    }
+  };
+
+  for (int i = 0; i < 5; ++i)
+  {
+    pool.detach_task(task);
+  }
+  pool.wait();
+  EXPECT_TRUE(value == count * 5);
+}
+
+/*
+TEST(ThreadPool, SubmitLoop)
+{
+  int             input[3] = { 1, 2, 3 };
+  BS::thread_pool pool(3);
+
+  auto task = [&input](int index)
+  {
+      std::this_thread::sleep_for(std::chrono::milliseconds(500));
+      if (index % 2)
+      {
+          input[index] += 100;
+      }
+      else
+      {
+          input[index] += 1;
+      }
+  };
+
+  auto start_time = nly::time_count::now();
+  auto fu = pool.submit_loop(0, 3, task);
+  fu.get();
+  auto used_time = nly::time_count::time_diff(start_time);
+  EXPECT_EQ(input[0], 2);
+  EXPECT_EQ(input[1], 102);
+  EXPECT_EQ(input[2], 4);
+  EXPECT_TRUE(used_time >= 0.4 && used_time <= 0.7);
 }
 
 TEST(ThreadPool, DetachLoop)
@@ -131,23 +211,4 @@ TEST(ThreadPool, DetachLoop)
   EXPECT_EQ(input[2], 4);
   EXPECT_TRUE(used_time >= 0.4 && used_time <= 0.7);
 }
-
-TEST(ThreadPool, Purge)
-{
-  BS::thread_pool pool(1);
-
-  auto task = []() { std::this_thread::sleep_for(std::chrono::milliseconds(500)); };
-
-  auto start_time = nly::time_count::now();
-  auto fu = pool.submit_task(task);
-  for (int i = 0; i < 3; ++i)
-  {
-    pool.detach_task(task);
-  }
-  std::this_thread::sleep_for(std::chrono::milliseconds(100));
-  pool.purge();
-  fu.wait();
-  pool.wait();
-  auto used_time = nly::time_count::time_diff(start_time);
-  EXPECT_TRUE(used_time >= 0.4 && used_time <= 0.7);
-}
+*/
