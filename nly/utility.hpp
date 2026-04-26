@@ -28,6 +28,13 @@ private:
   std::function<void()> m_fun;
 };
 
+template<typename t_object, typename t_lock>
+struct object_with_lock
+{
+  t_object m_object;
+  t_lock   m_lock;
+};
+
 using boost::noncopyable;
 using boost::signals2::dummy_mutex;
 
